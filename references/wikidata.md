@@ -16,7 +16,7 @@ not an MCP job. The MCP tools are deferred, so load them once per session with
 The tools you will actually use:
 
 | Tool | When |
-|------|------|
+| ------ | ------ |
 | `get_statements(entity_id, include_external_ids=true)` | **the default first call** — returns the description, aliases, and every direct statement with labels resolved |
 | `get_statement_values(entity_id, property_id)` | only when you need a statement's qualifiers or references (e.g. the postal-code qualifier on P159, or the source URL behind a claim) |
 | `search_items(query)` | only when the user gave you a **name instead of a QID** — find the QID first, confirm it, then `get_statements` |
@@ -24,7 +24,7 @@ The tools you will actually use:
 
 A single `get_statements` call is normally the whole read. Example:
 
-```
+```text
 get_statements(entity_id="Q122798923", include_external_ids=true)
 -> Theatergruppe "Kulturfabrik Berching" (Q122798923): description: amateur theatre group in Berching (Bavaria, Germany)
    ... headquarters location (P159): Berching (Q248062)
@@ -40,7 +40,7 @@ a Q-id into a name. The official-website value is your primary research seed.
 ## Properties worth reading
 
 | Property | Meaning | Use it for |
-|----------|---------|-----------|
+| ---------- | --------- | ----------- |
 | **P31** | instance of | confirm this is a theatre group / troupe / ensemble, not an unrelated entity |
 | **P856** | official website | **primary research seed** — fetch it first in step 2 |
 | **P571** | inception | founding year for the lead sentence (verify against web sources) |
@@ -58,16 +58,7 @@ handles the rest from the same QID.
 ## When the MCP can't resolve the item
 
 If the Wikidata MCP is unavailable or returns nothing for the QID:
-
-1. Say so plainly. If the MCP simply isn't connected, tell the user it can be
-   enabled from the connectors / tools menu.
-2. Fall back to `web_search` for `"<QID>" wikidata` and for the group's name to
-   recover the label, description, and official site from result snippets. A thin
-   read is acceptable because the infobox still fills the structured fields from
-   the QID on-wiki — you only need the name and a seed URL or two to proceed.
-3. If the user pasted the item JSON (e.g. from `Special:EntityData`), read it
-   directly: name in `labels`, gloss in `descriptions`, website in
-   `claims.P856[0].mainsnak.datavalue.value`.
+Say so plainly.
 
 Never fabricate Wikidata contents to paper over a failed read. If you genuinely
 cannot determine the group's name, stop and ask.

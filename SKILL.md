@@ -118,11 +118,28 @@ rules, the citation style, and a full worked example. The essentials:
    When unsure, ask "would a general encyclopedia have this article?" — if yes,
    interwiki; if it's specific to the amateur-theatre world this wiki covers,
    local. Don't over-link; link a term once, on first mention.
+   **Verify every `wikipedia:` target actually exists before linking it.** A
+   plausible-looking English title is often a dead link — English Wikipedia has no
+   `Volksstück` article, for instance, so `[[wikipedia:Volksstück|Volksstück]]`
+   would be broken. Confirm the page resolves first: a quick `web_search` for the
+   title usually suffices (check that a real `en.wikipedia.org/wiki/<Title>`
+   article for *that* concept comes up, not a German-Wikipedia page or a redirect
+   to something unrelated), or look the concept up on Wikidata and confirm an
+   English-Wikipedia sitelink. If the exact title is missing, link a broader or
+   synonymous article you have confirmed exists, or leave the term as plain text —
+   never ship a `wikipedia:` link to a non-existent page. Local wikilinks need no
+   such check: a missing local target is a normal, useful redlink.
 5. **Reference** every cited claim with `<ref>` tags and close with a references
-   section. Use named refs to reuse a source. Use the **basic ref format only**
-   (`<ref name="x">[URL Title], Site, retrieved DATE.</ref>`); do not use
-   `{{cite web}}`, `{{cite news}}`, or other citation templates yet — they are not
-   implemented on the wiki. Details are in the reference file.
+   section. **Define each named ref exactly once, with content** —
+   `<ref name="x">[URL Title], Site, retrieved DATE.</ref>` — and reuse it
+   elsewhere with the self-closing form `<ref name="x" />`. A self-closing
+   `<ref name="x" />` whose name has **no content definition anywhere** (including
+   a self-closing tag sitting inside the `<references>` block) triggers the
+   MediaWiki error *Cite error: `<ref>` tag with name "x" ... has no content*, so
+   make sure every name carries its content exactly once. Use the **basic ref
+   format only** (`<ref name="x">[URL Title], Site, retrieved DATE.</ref>`); do not
+   use `{{cite web}}`, `{{cite news}}`, or other citation templates yet — they are
+   not implemented on the wiki. Details are in the reference file.
 
 ## Step 4 — Deliver and self-check
 
@@ -130,11 +147,15 @@ Before handing it over, verify:
 - [ ] `{{AIGenerated}}` present, and `{{DynamicInfobox|qid=...}}` carries the
       **input** QID.
 - [ ] Lead sentence bolds the group's native name and says what/where it is.
-- [ ] Every non-obvious factual claim has a `<ref>`; all refs resolve in a
-      `<references />` section, and all use the **basic ref format** (no
-      `{{cite ...}}` templates).
-- [ ] Generic terms use `wikipedia:` interwiki links; amateur-theatre-scene terms
-      use local links; nothing is over-linked.
+- [ ] Every non-obvious factual claim has a `<ref>`. **Each named ref is defined
+      exactly once with content**, every reuse is self-closing, and no self-closing
+      tag is left without a content definition (a contentless name — e.g. a
+      self-closing `<ref name="x" />` in the body plus a self-closing
+      `<references />` — is what causes the "has no content" cite error). All use
+      the **basic ref format** (no `{{cite ...}}` templates).
+- [ ] Generic terms use `wikipedia:` interwiki links **whose target pages were
+      confirmed to exist on English Wikipedia**; amateur-theatre-scene terms use
+      local links; nothing is over-linked.
 - [ ] Tone is neutral and verifiable — no promotional language, no invented facts.
 
 When file tools are available, save the wikitext to a `.wiki` file in the

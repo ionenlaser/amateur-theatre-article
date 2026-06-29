@@ -7,7 +7,7 @@
 {{DynamicInfobox|qid=Q#######}}
 
 '''<Native name>''' is a <type> amateur theatre group based in
-[[wikipedia:<Town>|<Town>]], <region>, Germany.<ref name="site" /> <One or two more
+[[wikipedia:<Town>|<Town>]], <region>, Germany.<ref name="site">[<official URL> <page title>], <Group> e.V., retrieved <date>.</ref> <One or two more
 lead sentences: what it does, when founded, notable for what.>
 
 == History ==
@@ -30,11 +30,10 @@ lead sentences: what it does, when founded, notable for what.>
 ```
 
 Notes on the skeleton:
+
 - The Amateur Theatre Wiki is English-language, so headings are in English by
   default (`History`, `Repertoire`, `Venue`, `Organisation`, `External links`,
-  `References`). If you are ever targeting a German-language wiki instead, swap to
-  `Geschichte`, `Repertoire`, `Spielstätte`, `Organisation`, `Weblinks`,
-  `Einzelnachweise`. Keep proper names native in either case.
+  `References`). Keep proper names native in either case.
 - Drop any section you cannot source. A short, fully-referenced stub is a better
   outcome than padded sections. Three solid sentences under a single lead can be
   enough for a small group.
@@ -45,10 +44,7 @@ Notes on the skeleton:
   `[[Bund Deutscher Amateurtheater (BDAT)]]`. Confirm the exact title with a quick
   search of the wiki when in doubt; a not-yet-written target shows as a redlink,
   which is fine and even useful for surfacing wanted pages.
-- Categories: only add a local category if you are confident it exists in the
-  wiki (e.g. `[[Category:Amateur theatre in Lower Saxony]]`). When unsure, leave
-  them out — the infobox often applies categories automatically — and mention to
-  the user that categories can be added.
+- Categories: Don't add categories
 
 ## Link routing: interwiki vs. local
 
@@ -73,6 +69,26 @@ consistently. Link a term **once**, at first mention, and don't link the
 blindingly obvious ("theatre", "Germany"). Over-linking reads as noise and is a
 common review complaint.
 
+**Verify the target exists before you link it.** A `wikipedia:` link must point at
+a real English Wikipedia title; a confident-looking guess is often a dead link.
+`[[wikipedia:Volksstück|Volksstück]]`, for instance, looks reasonable but English
+Wikipedia has no `Volksstück` article (the concept lives only on German Wikipedia).
+Before emitting a `wikipedia:` link, confirm the page exists:
+
+- A quick `web_search` for the title is usually enough — check that a real
+  `en.wikipedia.org/wiki/<Title>` article for *that* concept comes up, not a
+  German-Wikipedia page, a disambiguation stub, or a redirect to something
+  unrelated.
+- For a definitive check, look the concept up on Wikidata and confirm it has an
+  English-Wikipedia sitelink (e.g. via `execute_sparql`, a row where
+  `?article schema:about wd:Q… ; schema:isPartOf <https://en.wikipedia.org/>`).
+
+If the exact title does not exist, link a broader or synonymous article you *have*
+confirmed (only if it genuinely exists), or simply leave the term as plain text —
+an unlinked word is better than a broken interwiki link. Local wikilinks need no
+such check: a missing local page is a normal redlink, even a useful one for
+surfacing wanted pages.
+
 ## Citations
 
 Every non-obvious factual claim carries a `<ref>`. Reuse a source with a named
@@ -86,23 +102,65 @@ template-call text.
 ```mediawiki
 <ref name="site">[https://example-troupe.de/ Über uns], Theatergruppe Example e.V., retrieved 29 June 2026.</ref>
 ```
+
 Reuse: `<ref name="site" />`
 
+### Define each name once, with content; reuse it self-closing
+
+The full citation (bracketed link + description) must appear **exactly once** for
+each ref name. Every other appearance of that name is the self-closing
+`<ref name="site" />`. If a name is *only* ever used self-closing — with no
+definition carrying content anywhere on the page — MediaWiki raises:
+
+> Cite error: `<ref>` tag with name "site" defined in `<references>` group "" has no content.
+
+Two valid patterns; pick one and apply it to every source:
+
+- **Define at first use** — put the content in the body the first time the source
+  is cited, then reuse self-closing, and close with a self-closing `<references />`:
+
+  ```mediawiki
+  ... based in Munich.<ref name="site">[https://example-troupe.de/ Über uns], Theatergruppe Example e.V., retrieved 29 June 2026.</ref>
+  ...
+  == References ==
+  <references />
+  ```
+
+- **Define in the references block** — keep the body refs all self-closing and give
+  every name its content inside a `<references>...</references>` block (note: this
+  block is **not** self-closing):
+
+  ```mediawiki
+  ... based in Munich.<ref name="site" />
+  ...
+  == References ==
+  <references>
+  <ref name="site">[https://example-troupe.de/ Über uns], Theatergruppe Example e.V., retrieved 29 June 2026.</ref>
+  </references>
+  ```
+
+The failure mode to avoid is the mix that leaves a name contentless: a self-closing
+`<ref name="site" />` in the body **and** a self-closing `<references />`, with the
+content defined nowhere.
+
 For a news article, keep the same shape — title, work, date — without a template:
+
 ```mediawiki
 <ref name="press">[https://example-paper.de/article Headline of the article], Example-Zeitung, 20 November 2025, retrieved 29 June 2026.</ref>
 ```
 
 Guidance:
+
 - One citation per distinct claim is enough; don't stack three refs on one
   sentence or re-cite the same fact in lead and body.
 - Prefer independent sources (press, association pages, a linked Wikipedia
   article's own sources) for anything evaluative; use the group's own site for
   plain facts and attribute it.
 - Use a real retrieval date (today's date) rather than a placeholder.
-- Close with `<references />`. You may define the named refs inline at first use,
-  or collect them inside the `<references>...</references>` block — either is fine,
-  just be consistent.
+- Close with `<references />` when refs are defined inline at first use, or with a
+  populated `<references>...</references>` block when you collect them there. Either
+  is fine — just be consistent and make sure every name carries its content exactly
+  once, so no name is left contentless (see "Define each name once" above).
 
 ## Neutral, research register
 
@@ -153,12 +211,18 @@ taken part in the [[Niedersächsische Amateurtheatertage]].<ref name="press" />
 * [https://example-speeldeel.de/ Official website]
 
 == References ==
-<references />
+<references>
+<ref name="site">[https://example-speeldeel.de/ Über uns], Plattdütsche Speeldeel Beispieldorf, retrieved 29 June 2026.</ref>
+<ref name="press">[https://example-zeitung.de/70-jahre-speeldeel 70 Jahre Speeldeel Beispieldorf], Beispiel-Zeitung, 12 March 2021, retrieved 29 June 2026.</ref>
+</references>
 ```
 
 In that example, note how `Low German`, the place, the dialect, `Heimat`, and the
 `e.V.` legal form all point to **English Wikipedia** via `wikipedia:` (general
-knowledge), while the association and the festival point to **local** wiki pages
-(amateur-theatre scene). Each factual claim is referenced with the basic ref
+knowledge) — each of those titles should be confirmed to exist before shipping —
+while the association and the festival point to **local** wiki pages
+(amateur-theatre scene). The body refs are all self-closing and their content is
+defined once in the `<references>` block, so every name resolves and none triggers
+a "has no content" error. Each factual claim is referenced with the basic ref
 format, the tone states rather than sells, and the two mandatory templates head
 the page with the input QID in the infobox.
