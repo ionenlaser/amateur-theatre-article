@@ -7,25 +7,38 @@ added snapshot links to its references. Never run it automatically.
 The target is QuickStatements 3.0 (`qs-dev.toolforge.org`), which runs V1 commands
 through the Wikibase REST API. Everything below is the V1 subset that tool accepts.
 
-## Inputs: the article and the item, nothing else
+## Inputs: what you already have, nothing new
 
-To keep this step cheap, **do not research again**. Work only from:
+To keep this step cheap, **do not start a new research round**. Work from:
 
 1. **The generated `.wiki` article** (re-read the file if it was post-processed, so
-   you pick up the archive links). Every fact and every source you need is already
-   in it: the prose holds the facts, the `<ref>` that follows a sentence is its
-   source, and the `<references>` block holds the URLs, retrieval dates and archive
-   links.
-2. **One `get_statements(<QID>, include_external_ids=true)` call** to see which
+   you pick up the archive links). The prose holds the facts, the `<ref>` that
+   follows a sentence is its source, and the `<references>` block holds the URLs,
+   retrieval dates and archive links.
+2. **Context already available in the conversation**: pages fetched, search
+   results and notes from the research run that produced the article. A fact from
+   there may be used if you recorded its source URL, even if it didn't make it into
+   the article text. Reference it with that URL (`S854` + `S813`). Add archive
+   pairs only if that URL is also archived in the article's refs.
+3. **One `get_statements(<QID>, include_external_ids=true)` call** to see which
    statements the item already has. Skip anything already present.
 
-No web search, no web fetch, no reading the cited pages again. If a fact is not in
-the article with a ref, it does not go into the batch.
+Web searches or fetches made only for this step are out of scope. The one exception
+is cheap: if the research context doesn't already list the group's social-media
+links, you may fetch the official homepage once and read its profile links.
 
 ## Which facts to extract
 
-Scan the article for these, in this order. Only take a fact that is stated in the
-article and backed by a `<ref>` (identifiers and names excepted, see below):
+Take a fact when the article states it, **implies it directly**, or the research
+context supports it with a recorded source:
+
+- **Stated**: "founded on 10 January 1926".
+- **Implied**: the founding year follows from the article without guesswork, e.g.
+  a name containing the year ("Vineta 1900") together with a cited "125th
+  anniversary in 2025". Reference the ref that carries the implying sentence.
+- **Shown by the infobox**: social-media profiles and websites are displayed by
+  `{{DynamicInfobox}}` from Wikidata, so they belong to the article implicitly even
+  though the prose doesn't mention them. Add any profile or website you found.
 
 | Fact | Property | Value kind | Reference? |
 |---|---|---|---|
@@ -34,7 +47,7 @@ article and backed by a `<ref>` (identifiers and names excepted, see below):
 | Street address of the registered seat | `P6375` as qualifier on `P159` | monolingual | **yes** |
 | Official name | `P1448` | monolingual (`de:"… e. V."`) | **yes** |
 | Alternative / former names | `Ade` / `Aen` | alias | no (cannot be referenced) |
-| Official website | `P856` | string (URL) | no |
+| Official website(s) | `P856` | string (URL) | no |
 | Facebook / Instagram / X | `P2013` / `P2003` / `P2002` | string (handle) | no |
 | YouTube channel | `P2397` | string (`UC…` id) | no |
 | Mastodon | `P4033` | string (`user@instance`) | no |
@@ -46,17 +59,26 @@ references at all.
 
 Rules:
 
+- **Websites**: add every official website you found that the item doesn't list
+  yet, including a new domain the old one now redirects to, or a separate site for
+  a festival or youth section. Don't add a URL that differs from an existing one
+  only by `http`/`https`, `www.` or a trailing slash.
+- **Social media**: take handles only from real profile links (the official site's
+  footer, or a profile you opened), never guessed from the name. Facebook (`P2013`):
+  the username from `facebook.com/<username>`; for pages of the form
+  `facebook.com/<Name>-<digits>/`, use the numeric id. Instagram (`P2003`): the
+  handle, lowercase, without `@` or query strings. YouTube (`P2397`): only a
+  `/channel/UC…` id, not a video, playlist or `@handle`.
 - Item values (such as a town for `P159`) must be resolved to a QID. Use the value
   the item already shows in `get_statements` where possible; otherwise one
   `search_items` call. Never guess a QID.
-- Time precision: `/9` year, `/10` month, `/11` day. Use year precision unless the
-  article gives an exact date with a source.
-- A street address goes on `P159` only when the article says it is the group's
+- Time precision: `/9` year, `/10` month, `/11` day. Use year precision unless a
+  source gives an exact date.
+- A street address goes on `P159` only when the source says it is the group's
   registered seat, not just a venue.
 - **No person-valued statements** (founders, directors, members): those people
   almost never have items.
-- A fact the article attributes to Wikidata itself (or only to the infobox) is not
-  a source; skip it.
+- A fact whose only source is Wikidata itself is not a source; skip it.
 
 ## Turning a `<ref>` into a Wikidata reference
 
@@ -75,13 +97,11 @@ its definition in `<references>`:
 Add `S1065`/`S2960` **only if the ref has an archive link**. Never create one
 yourself here.
 
-**Wikipedia source** (an `oldid` permalink, e.g. `https://de.wikipedia.org/w/index.php?title=…&oldid=…`):
-
-| Ref part | Source pair |
-|---|---|
-| the language edition | `S143 Q48183` (imported from Wikimedia project: German Wikipedia; resolve the QID for other languages) |
-| the `oldid` URL | `S4656 "<oldid URL>"` (Wikimedia import URL) |
-| `retrieved D` | `S813 +YYYY-MM-DDT00:00:00Z/11` |
+**Wikimedia source** (a Wikipedia `oldid` permalink or another Wikimedia project):
+the reference is **only** `S143 <project QID>` (imported from Wikimedia project),
+e.g. `S143 Q48183` for German Wikipedia. Resolve the QID for other language
+editions or projects. Add no `S854`/`S4656` URL, no `S813` retrieved date and no
+archive pairs.
 
 When a sentence carries two refs, give the statement two reference blocks: start
 the second one with `!` (e.g. `!S854`).
@@ -129,7 +149,7 @@ Q122834859	P571	+1946-00-00T00:00:00Z/9	S854	"https://www.achimer-speeldael.de/c
 A fact taken from German Wikipedia (Kellertheater Hamburg founded 1954):
 
 ```
-Q21036369	P571	+1954-00-00T00:00:00Z/9	S143	Q48183	S4656	"https://de.wikipedia.org/w/index.php?title=Kellertheater_Hamburg&oldid=266247510"	S813	+2026-10-14T00:00:00Z/11
+Q21036369	P571	+1954-00-00T00:00:00Z/9	S143	Q48183
 ```
 
 An alias and a Facebook profile, both unreferenced:

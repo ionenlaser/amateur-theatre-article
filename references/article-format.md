@@ -27,9 +27,18 @@ lead sentences: what it does, when founded, notable for what.>
 
 == References ==
 <references />
+
+{{Wikipedia article|<German Wikipedia title>|<Native name>}}   <!-- only if a German Wikipedia article exists -->
 ```
 
 Notes on the skeleton:
+
+- **Wikipedia article note.** If the group has a German Wikipedia article, end
+  the page with `{{Wikipedia article|<title>}}` as its very last line, after the
+  references. Parameter 1 is the German Wikipedia title, parameter 2 the name shown
+  in bold (omit it when identical to the title). It renders "**Name** on German
+  Wikipedia" with a link. It's not a source, so it doesn't replace citing
+  Wikipedia in `<ref>`s.
 
 - The Amateur Theatre Wiki is English-language, so headings are in English by
   default (`History`, `Repertoire`, `Venue`, `Organisation`, `External links`,
@@ -45,6 +54,49 @@ Notes on the skeleton:
   search of the wiki when in doubt; a not-yet-written target shows as a redlink,
   which is fine and even useful for surfacing wanted pages.
 - Categories: Don't add categories
+
+### Production tables in the Repertoire section
+
+When the sources list **roughly five or more dated productions**, put them in a
+MediaWiki table under `== Repertoire ==` instead of a long sentence of titles.
+Keep one or two prose sentences above the table for what the list can't show:
+genres, language, how many productions a year, how the repertoire changed.
+With fewer productions, or ones without years, stay with prose.
+
+```mediawiki
+== Repertoire ==
+The group stages one open-air production each summer. Its early seasons were
+devoted to Shakespeare; later productions include modern and contemporary drama.<ref name="dewiki" />
+
+{| class="wikitable sortable"
+|+ Selected productions<ref name="dewiki" />
+! Year !! Title !! Author !! Notes
+|-
+| 2001 || ''Much Ado About Nothing'' || [[wikipedia:William Shakespeare|William Shakespeare]] || First production
+|-
+| 2006 || ''[[wikipedia:Baal (play)|Baal]]'' || [[wikipedia:Bertolt Brecht|Bertolt Brecht]] ||
+|-
+| 2007 || ''[[wikipedia:The Visit (play)|The Visit]]'' || [[wikipedia:Friedrich Dürrenmatt|Friedrich Dürrenmatt]] ||
+|}
+```
+
+Table rules:
+
+- Use `class="wikitable sortable"`, sorted by year, oldest first. Columns:
+  **Year**, **Title**, **Author** (or "after" + author for adaptations), and an
+  optional **Notes** column for director, venue, premiere or award. Drop columns
+  the sources don't fill. An empty Author column for a whole table helps nobody.
+- Titles in italics, in the language the group performed them. Add the English
+  title in brackets only when the play is well known under it.
+- **Cite the table once**, in its caption (`|+ … <ref …/>`), when one source covers
+  every row. Add a ref in a row only for the rows that come from a different source.
+  Don't put the same ref in every row.
+- Linking follows the usual rules: link a play or author to English Wikipedia only
+  when that article exists, and link each one once, at first mention in the table.
+- Keep it selective. For a group with decades of productions, list the notable or
+  representative ones (first production, anniversaries, award winners, recent
+  seasons) and say so in the caption ("Selected productions"). Don't copy a
+  complete production history.
 
 ## Link routing: interwiki vs. local
 
@@ -91,8 +143,31 @@ surfacing wanted pages.
 
 ## Citations
 
-Every non-obvious factual claim carries a `<ref>`. Reuse a source with a named
+Every non-obvious factual claim is covered by a `<ref>`. Reuse a source with a named
 ref rather than repeating it.
+
+### Don't repeat the same ref after every sentence
+
+When consecutive sentences, or a whole paragraph, all come from the same source,
+cite it **once**: after the last sentence it supports, normally at the end of the
+paragraph. A paragraph-wide citation covers every sentence before it back to the
+previous ref. Repeat a ref inside a paragraph only when the sources change:
+
+```mediawiki
+<!-- avoid -->
+The group was founded in 1954.<ref name="dewiki" /> It moved into the basement in 1966.<ref name="dewiki" /> At first it staged one play a year.<ref name="dewiki" />
+
+<!-- prefer -->
+The group was founded in 1954. It moved into the basement in 1966. At first it staged one play a year.<ref name="dewiki" />
+
+<!-- sources change mid-paragraph: close each run with its own ref -->
+The group was founded in 1954 and moved into the basement in 1966.<ref name="dewiki" /> In 2014 it staged 22 productions.<ref name="press" />
+```
+
+Exceptions: put a ref straight after a sentence holding a contested, surprising or
+quoted claim (a superlative, an award, a figure), even when the same source closes
+the paragraph. A short article that relies on one source can end up with a single
+ref per paragraph, and that's fine.
 
 Use the **basic ref format only** — a bracketed external link plus a short plain
 description. Citation templates such as `{{cite web}}` / `{{cite news}}` are **not
@@ -171,8 +246,11 @@ For a news article, keep the same shape — title, work, date — without a temp
 
 Guidance:
 
-- One citation per distinct claim is enough; don't stack three refs on one
-  sentence or re-cite the same fact in lead and body.
+- Cite every useful source you find. When an independent source (local
+  newspaper, city wiki, association page) confirms a fact already cited to the
+  group's own site or Wikipedia, add it as a second ref on that sentence. Don't
+  go beyond two or three refs on one sentence, and don't re-cite the same fact in
+  lead and body.
 - Prefer independent sources (press, association pages, a linked Wikipedia
   article's own sources) for anything evaluative; use the group's own site for
   plain facts and attribute it.

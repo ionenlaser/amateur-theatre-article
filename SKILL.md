@@ -81,6 +81,15 @@ membership, or press coverage.
   town, name + "gegründet", name + "Premiere"/"Inszenierung"). Scale to the
   group's footprint: a long-running stage with press coverage warrants more
   searches than a small village `Laienspielgruppe` with only its own homepage.
+- **Cast a wide net for independent sources and cite each useful one.** Beyond the
+  group's own site and Wikipedia, look for local and regional newspaper articles
+  (premiere reviews, anniversary reports), city or regional wikis (e.g. a
+  Stadtwiki), municipal culture pages, umbrella-association member pages,
+  festival programmes, and the group's social-media pages. Each extra source
+  that confirms or adds a fact makes the article more verifiable. Prefer it over
+  the group's own site for the same claim, and add it as a ref even when the fact
+  is already cited once. Social-media pages are primary sources: fine for plain
+  facts like a premiere date or venue, never for evaluative claims.
 - **Record the URL, title, and site of every source you will cite.** You need
   these for the `<ref>` tags. Capture them as you go rather than reconstructing
   them later.
@@ -108,6 +117,10 @@ rules, the citation style, and a full worked example. The essentials:
    what the sources support; never invent dates, member counts, or award names.
 3. Don't restate the whole infobox in prose. Mention the key facts a reader needs
    for the narrative, and spend the body on context the infobox can't show.
+   In the **Repertoire** section, when the sources list about five or more dated
+   productions, present them as a `wikitable sortable` (Year / Title / Author /
+   Notes) below a short prose summary, cited once in the table caption. Keep a
+   few productions, or ones without dates, as prose. See the reference file.
 4. **Link routing** — this is the rule the user cares about most:
    - generic, general-knowledge topics → **interwiki link to English Wikipedia**
      using the `wikipedia:` prefix, e.g.
@@ -131,7 +144,10 @@ rules, the citation style, and a full worked example. The essentials:
    never ship a `wikipedia:` link to a non-existent page. Local wikilinks need no
    such check: a missing local target is a normal, useful redlink.
 5. **Reference** every cited claim with `<ref>` tags and close with a references
-   section. **Define each named ref exactly once, with content** —
+   section. **Don't repeat the same ref after every sentence**: when several
+   sentences or a whole paragraph come from one source, cite it once after the
+   last of them (paragraph-wide citation). Repeat a ref only where the source
+   changes or a single claim is surprising, contested or quoted. **Define each named ref exactly once, with content** —
    `<ref name="x">[URL Title], Site, retrieved DATE.</ref>` — and reuse it
    elsewhere with the self-closing form `<ref name="x" />`. A self-closing
    `<ref name="x" />` whose name has **no content definition anywhere** (including
@@ -154,7 +170,9 @@ Before handing it over, verify:
 - [ ] `{{AIGenerated}}` present, and `{{DynamicInfobox|qid=...}}` carries the
       **input** QID.
 - [ ] Lead sentence bolds the group's native name and says what/where it is.
-- [ ] Every non-obvious factual claim has a `<ref>`. **Each named ref is defined
+- [ ] Every non-obvious factual claim is covered by a `<ref>`, and the same ref
+      isn't repeated sentence after sentence where one paragraph-end citation
+      would do. **Each named ref is defined
       exactly once with content**, every reuse is self-closing, and no self-closing
       tag is left without a content definition (a contentless name — e.g. a
       self-closing `<ref name="x" />` in the body plus a self-closing
@@ -164,6 +182,8 @@ Before handing it over, verify:
 - [ ] Generic terms use `wikipedia:` interwiki links **whose target pages were
       confirmed to exist on English Wikipedia**; amateur-theatre-scene terms use
       local links; nothing is over-linked.
+- [ ] If the group has a German Wikipedia article, the page ends with
+      `{{Wikipedia article|<title>}}` after the references.
 - [ ] Tone is neutral and verifiable — no promotional language, no invented facts.
 
 When file tools are available, save the wikitext to a `.wiki` file in the
@@ -192,22 +212,26 @@ Do **not** start Step 5 on your own after writing the article; wait for the user
 
 ## Step 5 — Wikidata enrichment via QuickStatements (on request only)
 
-Read `references/quickstatements.md` first. This step works **only from the
-finished `.wiki` article** plus one `get_statements` call for the item. Do no new
-research: the facts are in the article's prose and their sources are its
-`<ref>`s. Re-read the file before starting, in case the archive script has
-updated it.
+Read `references/quickstatements.md` first. Do not start a new research round.
+Work from the finished `.wiki` article (re-read it, in case the archive script has
+updated it), anything already gathered earlier in the conversation with a recorded
+source URL, and one `get_statements` call for the item.
 
 1. Extract the facts the item does **not** already have: inception (`P571`),
    headquarters town (`P159`) and a registered-seat street address (`P6375`
-   qualifier on `P159`), official name (`P1448`), aliases, website and
-   social-media profiles. Skip anything already on the item, and never add
-   person-valued statements.
+   qualifier on `P159`), official name (`P1448`), aliases, **every official website
+   found** (`P856`, including a new domain or an extra site), and social-media
+   profiles. Facts may be stated in the article or **directly implied** by it (e.g.
+   a founding year from "1900" in the name plus a cited 125th anniversary in 2025).
+   Websites and social-media profiles count as part of the article because
+   `{{DynamicInfobox}}` displays them; if they aren't in the research context, one
+   fetch of the official homepage to read its profile links is allowed. Skip
+   anything already on the item, and never add person-valued statements.
 2. **Reference the non-trivial statements** (dates, locations, addresses, names)
    from the ref the article attaches to that fact: `S854` reference URL + `S813`
    retrieved, plus **`S1065` archive URL and `S2960` archive date when the ref has
-   an archive.org link**. Facts sourced from a Wikipedia `oldid` link use `S143`
-   (imported from Wikimedia project) + `S4656` (Wikimedia import URL) instead.
+   an archive.org link**. Facts sourced from Wikipedia or another Wikimedia project
+   get only `S143` (imported from Wikimedia project), with no URL or dates.
    Identifiers (website, social media) and aliases get no reference.
 3. Build the V1 command block, percent-encode it programmatically onto
    `https://qs-dev.toolforge.org/batch/new?v1=`, save the commands to a `.qs` file
