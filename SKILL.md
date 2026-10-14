@@ -1,21 +1,18 @@
 ---
 name: amateur-theatre-article
 description: >-
-  Create a neutral, research-style MediaWiki article about an amateur theatre
-  group, starting from a Wikidata QID. Use whenever the user gives a Wikidata
-  Q-id (e.g. "Q1747746") and wants a wiki article, page, or stub about a theatre
-  troupe / ensemble / Bühne / Theaterverein / Laienspielgruppe / Speeldeel, or
-  says things like "write the Amateur Theatre Wiki page for this troupe" or "turn
-  this QID into a wiki article". The skill reads the Wikidata item, researches the
-  group online via its name and linked websites, and produces referenced
-  MediaWiki markup with the {{DynamicInfobox|qid=...}} and {{AIGenerated}}
-  templates, interwiki links to English Wikipedia for generic topics, and local
-  links for amateur-theatre topics. It can also propose Wikidata enrichment
-  statements (inception, alternative names as aliases, social-media profiles) with
-  references, output as a QuickStatements V1 batch URL. Trigger even when the user
-  does not name the templates. Do NOT use for general Wikidata reconciliation or
-  authority-file lookups (normdata-search) or for the Baroque ceiling-painting
-  corpus (deckenmalerei-lab).
+  Create a neutral, referenced MediaWiki article about an amateur theatre group
+  from a Wikidata QID. Use whenever the user gives a Q-id (e.g. "Q1747746") and
+  wants a wiki article, page, or stub about a theatre troupe / ensemble / Bühne /
+  Theaterverein / Laienspielgruppe / Speeldeel, or says "write the Amateur
+  Theatre Wiki page for this troupe" or "turn this QID into a wiki article".
+  Reads the Wikidata item, researches the group online, and outputs MediaWiki
+  markup with {{DynamicInfobox|qid=...}} and {{AIGenerated}}, enwiki interwiki
+  links for generic topics, and local links for amateur-theatre topics. Can also
+  propose referenced Wikidata statements (inception, aliases, social media) as a
+  QuickStatements V1 batch URL. Trigger even when templates are not named. Do
+  NOT use for general Wikidata reconciliation or authority-file lookups
+  (normdata-search) or the Baroque ceiling-painting corpus (deckenmalerei-lab).
 ---
 
 # Amateur Theatre Wiki article from a Wikidata QID
