@@ -90,6 +90,15 @@ membership, or press coverage.
   the group's own site for the same claim, and add it as a ref even when the fact
   is already cited once. Social-media pages are primary sources: fine for plain
   facts like a premiere date or venue, never for evaluative claims.
+- **Look explicitly for member counts and activity status.** Club pages, annual
+  reports, chronicles, anniversary press articles and association member lists
+  often give a number of members for a stated year ("117 Mitglieder, Stand 2019").
+  Note **every dated count** you find, with its year and source, not just the
+  latest. Also note any evidence that the group is no longer active: a
+  dissolution notice (Auflösung, Liquidation) in the register of associations or
+  the press, an announcement on its own site, or an umbrella association listing it
+  as dissolved. A dead website or a long gap in productions alone is not evidence of
+  dissolution; mention it in the article only if a source says so.
 - **Record the URL, title, and site of every source you will cite.** You need
   these for the `<ref>` tags. Capture them as you go rather than reconstructing
   them later.
@@ -219,7 +228,9 @@ source URL, and one `get_statements` call for the item.
 
 1. Extract the facts the item does **not** already have: inception (`P571`),
    headquarters town (`P159`) and a registered-seat street address (`P6375`
-   qualifier on `P159`), official name (`P1448`), aliases, **every official website
+   qualifier on `P159`), official name (`P1448`), **member counts** (`P2124`, one
+   statement per dated count, each with a `P585` point-in-time qualifier),
+   **dissolution** (`P576`, only with explicit evidence), aliases, **every official website
    found** (`P856`, including a new domain or an extra site), and social-media
    profiles. Facts may be stated in the article or **directly implied** by it (e.g.
    a founding year from "1900" in the name plus a cited 125th anniversary in 2025).

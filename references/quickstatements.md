@@ -46,6 +46,8 @@ context supports it with a recorded source:
 | Headquarters town | `P159` | item | **yes** |
 | Street address of the registered seat | `P6375` as qualifier on `P159` | monolingual | **yes** |
 | Official name | `P1448` | monolingual (`de:"… e. V."`) | **yes** |
+| Member count | `P2124` + qualifier `P585` (point in time) | quantity | **yes** |
+| Dissolved | `P576` | time (or `somevalue`) | **yes** |
 | Alternative / former names | `Ade` / `Aen` | alias | no (cannot be referenced) |
 | Official website(s) | `P856` | string (URL) | no |
 | Facebook / Instagram / X | `P2013` / `P2003` / `P2002` | string (handle) | no |
@@ -69,6 +71,23 @@ Rules:
   `facebook.com/<Name>-<digits>/`, use the numeric id. Instagram (`P2003`): the
   handle, lowercase, without `@` or query strings. YouTube (`P2397`): only a
   `/channel/UC…` id, not a video, playlist or `@handle`.
+- **Member counts**: add one `P2124` statement **per dated count** the sources
+  give, each with a `P585` point-in-time qualifier for the year (`/9`) or exact
+  date the count refers to, and its reference. If a website lists counts for
+  several years, add all of them, not just the latest. The infobox shows the
+  most recent one by its `P585`, so no ranks are needed. Skip a count with no
+  date at all, or one only described vaguely ("about", "over 100"). A count
+  stated as "over 100" is not a number. Write plain integers (`117`, no
+  separators). Always include the `P585` qualifier on the same line: with it,
+  two years with the same number stay separate statements.
+- **Dissolution**: add `P576` only when a source explicitly says the association
+  was dissolved or wound up (a register notice, a press report, its own
+  announcement, an umbrella association's list). Use the date the source gives,
+  at year precision if that's all it states; if the source confirms the
+  dissolution but gives no date, use `somevalue`. Inactivity alone (dead website,
+  no recent productions, no social-media posts) is **not** evidence; mention it
+  to the user instead of writing a statement. Never set `P576` from the absence of
+  information.
 - Item values (such as a town for `P159`) must be resolved to a QID. Use the value
   the item already shows in `get_statements` where possible; otherwise one
   `search_items` call. Never guess a QID.
@@ -121,6 +140,8 @@ repeated on every line. Do **not** use `CREATE` / `LAST`; QS 3.0 rejects `LAST`.
 | String / URL / external id | double-quoted | `"https://www.example.de/"` |
 | Monolingual text | `lang:"text"` | `de:"Example e. V."` |
 | Time | `+YYYY-MM-DDT00:00:00Z/<precision>` | `+1946-00-00T00:00:00Z/9` |
+| Quantity | plain number | `117` |
+| Unknown value | `somevalue` | `somevalue` |
 | Alias / label / description | `Ade` / `Lde` / `Dde` + quoted text | `Ade "SeTA"` |
 
 A qualifier is added by repeating the existing main statement and appending the
@@ -150,6 +171,22 @@ A fact taken from German Wikipedia (Kellertheater Hamburg founded 1954):
 
 ```
 Q21036369	P571	+1954-00-00T00:00:00Z/9	S143	Q48183
+```
+
+Member counts for two years, each with a point-in-time qualifier and its own
+reference (here Ruhrbühne Witten, from German Wikipedia, plus a hypothetical
+count from the club's site):
+
+```
+Q17325980	P2124	117	P585	+2019-00-00T00:00:00Z/9	S143	Q48183
+Q17325980	P2124	121	P585	+2024-00-00T00:00:00Z/9	S854	"https://ruhrbuehne-witten.de/verein/"	S813	+2026-10-14T00:00:00Z/11
+```
+
+A dissolution with a known year, and one confirmed without a date:
+
+```
+Q123456789	P576	+2019-00-00T00:00:00Z/9	S854	"<register notice or press URL>"	S813	+2026-10-14T00:00:00Z/11
+Q123456789	P576	somevalue	S854	"<source URL>"	S813	+2026-10-14T00:00:00Z/11
 ```
 
 An alias and a Facebook profile, both unreferenced:
