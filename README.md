@@ -12,6 +12,8 @@ as a QuickStatements batch. See [SKILL.md](SKILL.md) for the full instructions.
 | `references/` | Reference docs the skill loads on demand |
 | `amateur-theatre-article.skill` | Packaged skill, ready to upload |
 | `theaterlist.csv` | List of theatre groups on Wikidata (not part of the skill) |
+| `articles/` | Generated articles (`.wiki`), ready to paste into the wiki |
+| `archive_refs.py` | Post-processing: adds Internet Archive snapshots to references |
 
 ## Building the `.skill` file
 
@@ -46,6 +48,36 @@ ln -s "$PWD" /path/to/project/.claude/skills/amateur-theatre-article
 ```
 
 Restart Claude Code; the skill then appears in the skills list.
+
+## Archiving references
+
+After generating articles, run `archive_refs.py` to snapshot every cited web page
+in the [Internet Archive](https://web.archive.org/) and add the snapshot link to
+the reference. It's a separate step, not part of the skill, and needs only
+Python 3 (standard library):
+
+```sh
+python3 archive_refs.py --dry-run   # list the URLs it would archive
+python3 archive_refs.py             # archive and update articles/*.wiki in place
+python3 archive_refs.py articles/Foo.wiki other-folder/   # specific files or folders
+```
+
+For each `<ref>`, the script takes the first external link. Wikimedia links
+(Wikipedia, Wikidata, …) are skipped, because those are cited with `oldid`
+permalinks already. It asks Save Page Now for a fresh capture and appends the result:
+
+```mediawiki
+<ref name="site">[https://example.de/ Über uns], Example e.V., retrieved 14 October 2026. [https://web.archive.org/web/20261014120000/https://example.de/ Archived] on 14 October 2026.</ref>
+```
+
+If a capture fails, it falls back to the most recent existing snapshot. URLs with
+no snapshot at all are listed at the end, and the script exits with status 1.
+Refs that already contain a `web.archive.org` link are skipped, so it's safe to
+re-run. Anonymous captures are rate-limited, so expect roughly 10–60 seconds per URL.
+
+Run it before asking Claude for the optional QuickStatements batch (skill step 5).
+That step reads only the finished article, and it adds each reference's archive
+link to the Wikidata reference as archive URL (P1065) and archive date (P2960).
 
 ## Requirements
 

@@ -27,9 +27,10 @@ to read the item just enough to know *what the group is called* and *where to go
 looking*, then write the prose, the context, and the citations that Wikidata and
 the infobox cannot supply on their own.
 
-Work in five steps. Read `references/wikidata.md` before step 1,
-`references/article-format.md` before step 3, and `references/quickstatements.md`
-before step 5.
+Work in four steps. Read `references/wikidata.md` before step 1 and
+`references/article-format.md` before step 3. Step 5 (Wikidata enrichment) is
+optional and runs only when the user asks for it; read
+`references/quickstatements.md` before it.
 
 ## Step 1 — Read the Wikidata item
 
@@ -139,7 +140,13 @@ rules, the citation style, and a full worked example. The essentials:
    make sure every name carries its content exactly once. Use the **basic ref
    format only** (`<ref name="x">[URL Title], Site, retrieved DATE.</ref>`); do not
    use `{{cite web}}`, `{{cite news}}`, or other citation templates yet — they are
-   not implemented on the wiki. Details are in the reference file.
+   not implemented on the wiki. When citing a **Wikipedia article** (any
+   language), cite the exact revision you read with an `oldid` permalink —
+   `https://de.wikipedia.org/w/index.php?title=<Title>&oldid=<revid>` — never the
+   plain `/wiki/<Title>` URL; get the current revid from the wiki's API
+   (`action=query&prop=revisions&rvprop=ids&titles=<Title>`). This applies only to
+   references, not to `wikipedia:` interwiki links. Details are in the reference
+   file.
 
 ## Step 4 — Deliver and self-check
 
@@ -152,7 +159,8 @@ Before handing it over, verify:
       tag is left without a content definition (a contentless name — e.g. a
       self-closing `<ref name="x" />` in the body plus a self-closing
       `<references />` — is what causes the "has no content" cite error). All use
-      the **basic ref format** (no `{{cite ...}}` templates).
+      the **basic ref format** (no `{{cite ...}}` templates). Wikipedia sources
+      are cited with an `oldid` permalink, not a `/wiki/<Title>` URL.
 - [ ] Generic terms use `wikipedia:` interwiki links **whose target pages were
       confirmed to exist on English Wikipedia**; amateur-theatre-scene terms use
       local links; nothing is over-linked.
@@ -168,45 +176,44 @@ the wiki's existing page titles exactly — including the legal form, as in
 `[[Amateurtheaterverband Niedersachsen e. V.]]`; a target that doesn't exist yet
 is a normal redlink, not a problem.
 
-## Step 5 — Suggest Wikidata enrichment statements
+### Recommend the next steps (do not run them)
 
-Read `references/quickstatements.md` first. The research you did for the article
-usually surfaces facts the Wikidata item is **missing** — these are worth feeding
-back as a ready-to-run QuickStatements batch.
+After delivering the article, tell the user what can follow, in this order, and
+stop there:
 
-1. Compare what you learned against the `get_statements` output from Step 1, and
-   collect every well-sourced fact the item does **not** already have. Prioritise:
-   - **inception (`P571`)** — the founding year (year precision unless an exact
-     date is solid);
-   - **alternative names** — as aliases (`Ade` / `Aen`), for official short forms,
-     former names, or common spellings;
-   - **social-media profiles** — Facebook (`P2013`), Instagram (`P2003`),
-     X (`P2002`), YouTube channel (`P2397`), Mastodon (`P4033`);
-   - **street address** — only if you know the group's registered seat, added as a
-     `located at street address (P6375)` **qualifier** of the existing
-     `headquarters location (P159)` statement (not a standalone claim, and not for
-     a mere performance venue).
-   The default property set and value formats are in the reference file.
-2. **Reference the factual claims, not the identifiers.** Inception and a street
-   address carry a reference (reference URL `S854` + retrieved `S813` at today's
-   date, from the same sources you cited). Social-media profile statements take
-   **no** reference, and aliases/labels cannot carry one — that is expected.
-3. Only include facts you actually found and that are not already present. Never
-   invent a handle, id, or date to fill a slot. **Do not add person-valued
-   statements** (founders, directors, members) — those people will not have their
-   own Wikidata items, so the value cannot be linked.
-4. Build the V1 command block (one line per statement, TAB-separated, QID repeated
-   on each line) and turn it into a batch URL by percent-encoding the commands onto
-   `https://qs-dev.toolforge.org/batch/new?v1=` — encode programmatically so dates
-   survive (a raw `+` must become `%2B`). See the reference file for the exact
-   method and a worked example.
-5. **Present both** the human-readable command block and the batch URL, and note
-   that the link opens a draft the user reviews and runs while logged in (it does
-   not auto-save). When file tools are available, also save the commands to a `.qs`
-   file beside the article.
+1. **Archive the references.** If the user has the `archive_refs.py`
+   post-processing script (see the skill repository's README), recommend running
+   it on the output folder. It adds archive.org snapshot links to the references.
+2. **Wikidata enrichment.** Offer to generate a QuickStatements batch from the
+   finished article (Step 5), ideally after archiving, so the archive links can be
+   used as references.
 
-If your research turns up an interesting statement **type** that is not in the
-default set above (e.g. described at URL `P973`, a parent or member organisation,
-an authority-file identifier), propose it for the item *and ask the user whether
-that property should be added to this skill's default enrichment set* before
-treating it as standard. Person-valued facts stay out of scope.
+Do **not** start Step 5 on your own after writing the article; wait for the user.
+
+## Step 5 — Wikidata enrichment via QuickStatements (on request only)
+
+Read `references/quickstatements.md` first. This step works **only from the
+finished `.wiki` article** plus one `get_statements` call for the item. Do no new
+research: the facts are in the article's prose and their sources are its
+`<ref>`s. Re-read the file before starting, in case the archive script has
+updated it.
+
+1. Extract the facts the item does **not** already have: inception (`P571`),
+   headquarters town (`P159`) and a registered-seat street address (`P6375`
+   qualifier on `P159`), official name (`P1448`), aliases, website and
+   social-media profiles. Skip anything already on the item, and never add
+   person-valued statements.
+2. **Reference the non-trivial statements** (dates, locations, addresses, names)
+   from the ref the article attaches to that fact: `S854` reference URL + `S813`
+   retrieved, plus **`S1065` archive URL and `S2960` archive date when the ref has
+   an archive.org link**. Facts sourced from a Wikipedia `oldid` link use `S143`
+   (imported from Wikimedia project) + `S4656` (Wikimedia import URL) instead.
+   Identifiers (website, social media) and aliases get no reference.
+3. Build the V1 command block, percent-encode it programmatically onto
+   `https://qs-dev.toolforge.org/batch/new?v1=`, save the commands to a `.qs` file
+   beside the article, and show the user both. The link opens a draft the user
+   reviews and runs while logged in; nothing is saved automatically.
+
+If the article holds a useful fact of a type outside the default set (e.g.
+described at URL `P973`, a member organisation `P463`), propose it and ask whether
+it should become part of the default set.

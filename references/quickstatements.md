@@ -1,186 +1,163 @@
 # Wikidata enrichment via QuickStatements (V1 commands)
 
-After writing the article you will usually have learned facts that are **not yet on
-the Wikidata item** — most often the troupe's founding year, alternative names, and
-its social-media profiles. This file is the reference for turning those into
-QuickStatements **V1** commands and a ready-to-run batch URL.
+This step is **optional and runs only when the user asks for it**, after the
+article is finished and, ideally, after the archive.org post-processing step has
+added snapshot links to its references. Never run it automatically.
 
 The target is QuickStatements 3.0 (`qs-dev.toolforge.org`), which runs V1 commands
 through the Wikibase REST API. Everything below is the V1 subset that tool accepts.
 
-## When to generate statements
+## Inputs: the article and the item, nothing else
 
-Only propose a statement when **all** of these hold:
+To keep this step cheap, **do not research again**. Work only from:
 
-1. The fact is supported by a source you actually read (the same sources you cited
-   in the article).
-2. The item does **not already carry it** — re-read the `get_statements` output
-   from Step 1 and skip anything already present (QuickStatements silently ignores
-   exact duplicates, but proposing them just adds noise for the reviewer).
-3. The value is a stable property of the group, not a transient detail.
+1. **The generated `.wiki` article** (re-read the file if it was post-processed, so
+   you pick up the archive links). Every fact and every source you need is already
+   in it: the prose holds the facts, the `<ref>` that follows a sentence is its
+   source, and the `<references>` block holds the URLs, retrieval dates and archive
+   links.
+2. **One `get_statements(<QID>, include_external_ids=true)` call** to see which
+   statements the item already has. Skip anything already present.
 
-Never invent an identifier or a date to fill a slot. A missing statement is fine; a
-wrong one is a defect a human now has to find and revert.
+No web search, no web fetch, no reading the cited pages again. If a fact is not in
+the article with a ref, it does not go into the batch.
+
+## Which facts to extract
+
+Scan the article for these, in this order. Only take a fact that is stated in the
+article and backed by a `<ref>` (identifiers and names excepted, see below):
+
+| Fact | Property | Value kind | Reference? |
+|---|---|---|---|
+| Founding / inception | `P571` | time | **yes** |
+| Headquarters town | `P159` | item | **yes** |
+| Street address of the registered seat | `P6375` as qualifier on `P159` | monolingual | **yes** |
+| Official name | `P1448` | monolingual (`de:"… e. V."`) | **yes** |
+| Alternative / former names | `Ade` / `Aen` | alias | no (cannot be referenced) |
+| Official website | `P856` | string (URL) | no |
+| Facebook / Instagram / X | `P2013` / `P2003` / `P2002` | string (handle) | no |
+| YouTube channel | `P2397` | string (`UC…` id) | no |
+| Mastodon | `P4033` | string (`user@instance`) | no |
+
+**Reference the non-trivial statements** (dates, places, addresses, names) and leave
+identifiers unreferenced: a social-media profile or website proves itself, and a
+URL referencing itself is circular. Aliases, labels and descriptions cannot carry
+references at all.
+
+Rules:
+
+- Item values (such as a town for `P159`) must be resolved to a QID. Use the value
+  the item already shows in `get_statements` where possible; otherwise one
+  `search_items` call. Never guess a QID.
+- Time precision: `/9` year, `/10` month, `/11` day. Use year precision unless the
+  article gives an exact date with a source.
+- A street address goes on `P159` only when the article says it is the group's
+  registered seat, not just a venue.
+- **No person-valued statements** (founders, directors, members): those people
+  almost never have items.
+- A fact the article attributes to Wikidata itself (or only to the infobox) is not
+  a source; skip it.
+
+## Turning a `<ref>` into a Wikidata reference
+
+Find the ref the article attaches to the sentence, then build the source pairs from
+its definition in `<references>`:
+
+**Web source** (`<ref name="x">[URL Title], Site, retrieved D. [ARCHIVE Archived] on A.</ref>`):
+
+| Ref part | Source pair |
+|---|---|
+| the cited URL | `S854 "<URL>"` (reference URL) |
+| `retrieved D` | `S813 +YYYY-MM-DDT00:00:00Z/11` (retrieved) |
+| `[ARCHIVE Archived]`, if present | `S1065 "<ARCHIVE>"` (archive URL) |
+| `on A`, if present | `S2960 +YYYY-MM-DDT00:00:00Z/11` (archive date) |
+
+Add `S1065`/`S2960` **only if the ref has an archive link**. Never create one
+yourself here.
+
+**Wikipedia source** (an `oldid` permalink, e.g. `https://de.wikipedia.org/w/index.php?title=…&oldid=…`):
+
+| Ref part | Source pair |
+|---|---|
+| the language edition | `S143 Q48183` (imported from Wikimedia project: German Wikipedia; resolve the QID for other languages) |
+| the `oldid` URL | `S4656 "<oldid URL>"` (Wikimedia import URL) |
+| `retrieved D` | `S813 +YYYY-MM-DDT00:00:00Z/11` |
+
+When a sentence carries two refs, give the statement two reference blocks: start
+the second one with `!` (e.g. `!S854`).
 
 ## V1 line format
 
-One command per line. Fields are separated by a TAB (or a `|`). The first field is
-the **item id** (you already have it — the input QID), then the property, then the
-value, then optional qualifier and source pairs.
+One command per line, fields separated by TAB. The first field is the item QID,
+repeated on every line. Do **not** use `CREATE` / `LAST`; QS 3.0 rejects `LAST`.
 
 ```
-<QID>	<PROPERTY>	<VALUE>	[<SOURCE-PROP>	<SOURCE-VALUE> ...]
+<QID>	<PROPERTY>	<VALUE>	[<QUALIFIER>	<VALUE> ...]	[<SOURCE>	<VALUE> ...]
 ```
-
-Because the item already exists, every line starts with its QID. Do **not** use the
-`CREATE` / `LAST` chaining shortcut here — `LAST` is rejected by the QS 3.0 engine,
-so repeat the QID on each line instead.
-
-### Value formats
 
 | Value kind | Format | Example |
 |---|---|---|
-| Item (Q-id) | bare id, no quotes | `Q1726` |
-| String / URL / external id | double-quoted | `"https://www.laimerbrettl.de/"` |
-| Monolingual text | `lang:"text"` | `de:"Laimer Brett'l e. V."` |
-| Time | `+YYYY-MM-DDT00:00:00Z/<precision>` | `+1993-00-00T00:00:00Z/9` |
+| Item | bare id | `Q1726` |
+| String / URL / external id | double-quoted | `"https://www.example.de/"` |
+| Monolingual text | `lang:"text"` | `de:"Example e. V."` |
+| Time | `+YYYY-MM-DDT00:00:00Z/<precision>` | `+1946-00-00T00:00:00Z/9` |
+| Alias / label / description | `Ade` / `Lde` / `Dde` + quoted text | `Ade "SeTA"` |
 
-Time precision: `/9` = year, `/10` = month, `/11` = day. Use **year precision**
-(`+1993-00-00T00:00:00Z/9`) unless a source gives a trustworthy exact date — and be
-wary of social-media "founded on 1 January" values, which are almost always a
-year-only fact dressed up as a full date. Use `+` for CE years and at least four
-digits.
-
-### Labels, aliases, descriptions
-
-Use a language-prefixed code in the property slot, value in quotes:
-
-- Label: `Lde "..."`, `Len "..."`
-- Alias: `Ade "..."`, `Aen "..."` (several at once with a pipe: `Ade "A|B|C"`)
-- Description: `Dde "..."`, `Den "..."`
-
-These are **not statements and cannot carry references** — Wikidata does not
-reference labels/aliases/descriptions. Only add an alias when it is a real
-alternative name (an official short form, a former name, a common spelling), not a
-typo or a translation. Don't overwrite the primary label; add variants as aliases.
-
-### Statements with references
-
-Append source pairs after the value, using `S` + the property number instead of
-`P`. The standard web-source block is **reference URL (P854)** plus **retrieved
-(P813)**:
-
-```
-Q122798558	P571	+1993-00-00T00:00:00Z/9	S854	"https://www.laimerbrettl.de/chronik/"	S813	+2026-06-30T00:00:00Z/11
-```
-
-- Use the real retrieval date (today) at day precision `/11`.
-- For a second, independent reference block on the same statement, prefix the new
-  block's first source with `!` (e.g. `!S854`).
-- Richer reference parts exist if you need them: `S248` stated in (an item),
-  `S1476` title, `S123` publisher, `S407` language of work. Keep it to URL +
-  retrieved unless a part genuinely adds provenance.
-
-**Reference the factual claims; leave identifiers and names unreferenced.**
-Inception, street address, and similar sourced facts must carry a reference — the
-point of the enrichment step is verifiable data. But **social-media profile
-identifiers do not need a reference** (the profile is self-evidencing, and a
-profile URL referencing itself is circular), and aliases/labels cannot be
-referenced at all. So in practice: reference `P571` and a street-address
-qualifier; do not attach `S…` pairs to social-media statements or aliases.
-
-## Default enrichment set for amateur-theatre troupes
-
-These are the statements worth generating by default when the research turns them
-up and the item lacks them:
-
-| Fact | Property | Value kind | Notes |
-|---|---|---|---|
-| Inception / founding | `P571` | time | Year precision unless an exact date is solid. Referenced. |
-| Official name | `P1448` | monolingual | e.g. `de:"… e. V."`. Often already present. |
-| Alternative names | `Ade` / `Aen` | alias | Short forms, former names, common spellings. No reference. |
-| Official website | `P856` | string (URL) | Only if missing. |
-| Street address | `P6375` | monolingual | **As a qualifier of headquarters location (`P159`)**, not a standalone statement — see below. |
-| Facebook | `P2013` | string | The username in `facebook.com/<id>`. No reference. |
-| Instagram | `P2003` | string | The handle without `@`. No reference. |
-| X / Twitter | `P2002` | string | The handle without `@`. No reference. |
-| YouTube channel | `P2397` | string | The `UC…` channel id (not the @handle). No reference. |
-| Mastodon | `P4033` | string | `user@instance` form. No reference. |
-
-Add a social-media profile only if you actually found it; do not guess a handle
-from the group's name. These statements carry **no reference** (see above).
-
-**Street address as a qualifier.** Model the address as `located at street address
-(P6375)` qualifying the existing `headquarters location (P159)` statement, rather
-than as its own claim. In V1 you add a qualifier by repeating the main
-property/value and appending the qualifier property/value (then the reference):
+A qualifier is added by repeating the existing main statement and appending the
+qualifier pair; QuickStatements matches the existing statement:
 
 ```
 Q122798558	P159	Q1726	P6375	de:"Sudetendeutsche Straße 40, 80937 München"	S854	"<source URL>"	S813	+2026-06-30T00:00:00Z/11
 ```
 
-QuickStatements matches the existing `P159 = Q1726` statement and adds the
-qualifier and reference to it. Only do this when the address is genuinely the
-group's **registered seat / headquarters** — not merely a performance venue or a
-rehearsal hall, which are a different thing and do not belong on `P159`. If you
-only know a playing venue, leave the address out.
+## Worked example
 
-**Do not add person-valued statements** (founders `P112`, directors, individual
-members, etc.). The people involved in a small amateur troupe almost never have
-their own Wikidata items, so the value would be an unlinkable string or a redlink
-that pollutes the graph. Stick to facts whose value is a date, a string/identifier,
-or an item that already exists.
+Article `Achimer_Speeldäl.wiki` (`Q122834859`) says the group was founded in 1946,
+citing:
 
-If during research you find a useful fact that does **not** fit the table above
-(for example described at URL `P973`, a parent or member organisation, or an
-identifier in an authority file), propose it for the current item **and ask the
-user whether that property should become part of the skill's default set** before
-baking it in. (Person-valued facts are out of scope — see above — so do not ask
-about founders or members.)
+```mediawiki
+<ref name="chronik">[https://www.achimer-speeldael.de/chronik Chronik], Achimer Speeldäl e.V., retrieved 14 October 2026. [https://web.archive.org/web/20261014133712/https://www.achimer-speeldael.de/chronik Archived] on 14 October 2026.</ref>
+```
+
+`get_statements` already shows `P571 = 1946`, so inception is skipped. For an item
+that lacked it, the line would be:
+
+```
+Q122834859	P571	+1946-00-00T00:00:00Z/9	S854	"https://www.achimer-speeldael.de/chronik"	S813	+2026-10-14T00:00:00Z/11	S1065	"https://web.archive.org/web/20261014133712/https://www.achimer-speeldael.de/chronik"	S2960	+2026-10-14T00:00:00Z/11
+```
+
+A fact taken from German Wikipedia (Kellertheater Hamburg founded 1954):
+
+```
+Q21036369	P571	+1954-00-00T00:00:00Z/9	S143	Q48183	S4656	"https://de.wikipedia.org/w/index.php?title=Kellertheater_Hamburg&oldid=266247510"	S813	+2026-10-14T00:00:00Z/11
+```
+
+An alias and a Facebook profile, both unreferenced:
+
+```
+Q18289439	Ade	"SeTA"
+Q122834860	P2013	"ExampleTheatreBremen"
+```
 
 ## Building the batch URL
 
-QuickStatements 3.0 accepts a pre-filled batch via:
-
-```
-https://qs-dev.toolforge.org/batch/new?v1=<percent-encoded commands>
-```
-
-Percent-encode the **entire** command block. The characters that break a URL if
-left raw are the ones that matter most: `+` → `%2B` (critical — a raw `+` decodes
-to a space and corrupts every date), `/` → `%2F`, `"` → `%22`, `:` → `%3A`, TAB →
-`%09`, newline → `%0A`. The reliable way is to encode programmatically rather than
-by hand:
+Percent-encode the whole command block programmatically, never by hand. A raw `+`
+decodes to a space and corrupts every date:
 
 ```python
 import urllib.parse
 url = "https://qs-dev.toolforge.org/batch/new?v1=" + urllib.parse.quote(commands, safe="")
 ```
 
-where `commands` is the TAB-and-newline command block. Verify the encoded `+`
-appears as `%2B`, not `%20` or a literal `+`.
-
-### Worked example
-
-Two enrichment statements for Laimer Brett'l (`Q122798558`) — founding year (from
-the chronicle) and the Facebook page — each with a reference:
-
-```
-Q122798558	P571	+1993-00-00T00:00:00Z/9	S854	"https://www.laimerbrettl.de/chronik/"	S813	+2026-06-30T00:00:00Z/11
-Q122798558	P2013	"LaimerBrettl"	S854	"https://www.laimerbrettl.de/"	S813	+2026-06-30T00:00:00Z/11
-```
-
-Encoded as a batch URL:
-
-```
-https://qs-dev.toolforge.org/batch/new?v1=Q122798558%09P571%09%2B1993-00-00T00%3A00%3A00Z%2F9%09S854%09%22https%3A%2F%2Fwww.laimerbrettl.de%2Fchronik%2F%22%09S813%09%2B2026-06-30T00%3A00%3A00Z%2F11%0AQ122798558%09P2013%09%22LaimerBrettl%22%09S854%09%22https%3A%2F%2Fwww.laimerbrettl.de%2F%22%09S813%09%2B2026-06-30T00%3A00%3A00Z%2F11
-```
+Check that `+` came out as `%2B`.
 
 ## Presenting the result
 
-When file tools are available, also write the human-readable command block to a
-`.qs` (or `.txt`) file alongside the article so the user can inspect or paste it
-into the QS text area directly. Always **show the readable commands** (so the user
-can see exactly what will be written) **and** the batch URL (so they can open,
-review, and run it). Make clear the user must be logged in and that QS previews the
-batch before anything is saved — the URL opens a draft, it does not auto-run.
+Write the command block to a `.qs` file next to the article (same base name), and
+show the user both the readable commands and the batch URL. The URL opens a draft
+in QuickStatements: the user must be logged in, reviews it, and runs it themselves.
+Nothing is saved automatically.
+
+If the article holds a useful fact outside the table above (for example
+described at URL `P973` or a member organisation `P463`), propose it and ask the
+user whether it should join the default set before treating it as standard.

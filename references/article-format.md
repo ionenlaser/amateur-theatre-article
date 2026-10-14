@@ -105,6 +105,26 @@ template-call text.
 
 Reuse: `<ref name="site" />`
 
+### Wikipedia sources: cite the revision (`oldid`)
+
+When a Wikipedia article (any language) is a source, link the **exact revision you
+read**, not the live page, so reviewers see the text the claim was based on even
+after the article changes. Look up the current revision id:
+
+```text
+https://de.wikipedia.org/w/api.php?action=query&prop=revisions&rvprop=ids&titles=Kellertheater_Hamburg&format=json
+-> "revid": 266247510
+```
+
+and cite it as:
+
+```mediawiki
+<ref name="dewiki">[https://de.wikipedia.org/w/index.php?title=Kellertheater_Hamburg&oldid=266247510 Kellertheater Hamburg], German Wikipedia, retrieved 14 October 2026.</ref>
+```
+
+Never use `https://de.wikipedia.org/wiki/<Title>` in a reference. This rule is for
+references only; `[[wikipedia:...]]` interwiki links keep using plain titles.
+
 ### Define each name once, with content; reuse it self-closing
 
 The full citation (bracketed link + description) must appear **exactly once** for
