@@ -14,6 +14,7 @@ as a QuickStatements batch. See [SKILL.md](SKILL.md) for the full instructions.
 | `theaterlist.csv` | List of theatre groups on Wikidata (not part of the skill) |
 | `articles/` | Generated articles (`.wiki`), ready to paste into the wiki |
 | `archive_refs.py` | Post-processing: adds Internet Archive snapshots to references |
+| `upload_articles.py` | Uploads the articles to the wiki |
 
 ## Building the `.skill` file
 
@@ -78,6 +79,24 @@ re-run. Anonymous captures are rate-limited, so expect roughly 10–60 seconds p
 Run it before asking Claude for the optional QuickStatements batch (skill step 5).
 That step reads only the finished article, and it adds each reference's archive
 link to the Wikidata reference as archive URL (P1065) and archive date (P2960).
+
+## Uploading articles to the wiki
+
+`upload_articles.py` creates one wiki page per `.wiki` file in a folder. The page
+title is the file name with underscores as spaces (`Kellertheater_Hamburg.wiki` →
+"Kellertheater Hamburg"). It logs in with your normal wiki account (no bot
+password needed) and uses only the Python standard library.
+
+```sh
+python3 upload_articles.py                 # upload articles/, asks for username and password
+WIKI_USER=Name WIKI_PASSWORD=… python3 upload_articles.py
+python3 upload_articles.py --overwrite     # also replace pages that already exist
+python3 upload_articles.py other-folder/ --summary "New article"
+```
+
+Pages that already exist are skipped unless you pass `--overwrite`. Run
+`archive_refs.py` first, so the uploaded references include archive links. Create
+`Template:Wikipedia article` from `templates/` too, or it will show as a red link.
 
 ## Requirements
 
