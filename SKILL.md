@@ -170,8 +170,11 @@ rules, the citation style, and a full worked example. The essentials:
    `https://de.wikipedia.org/w/index.php?title=<Title>&oldid=<revid>` — never the
    plain `/wiki/<Title>` URL; get the current revid from the wiki's API
    (`action=query&prop=revisions&rvprop=ids&titles=<Title>`). This applies only to
-   references, not to `wikipedia:` interwiki links. Details are in the reference
-   file.
+   references, not to `wikipedia:` interwiki links. The `oldid` rule is **only for
+   Wikimedia projects** (Wikipedia, Wikisource, Commons, …). Other MediaWiki sites,
+   such as regional or city wikis (AW-Wiki, Stadtwikis), are ordinary websites:
+   cite their plain page URL like any other web source, so the page can be
+   archived and referenced normally. Details are in the reference file.
 
 ## Step 4 — Deliver and self-check
 
@@ -187,7 +190,8 @@ Before handing it over, verify:
       self-closing `<ref name="x" />` in the body plus a self-closing
       `<references />` — is what causes the "has no content" cite error). All use
       the **basic ref format** (no `{{cite ...}}` templates). Wikipedia sources
-      are cited with an `oldid` permalink, not a `/wiki/<Title>` URL.
+      are cited with an `oldid` permalink, not a `/wiki/<Title>` URL; non-Wikimedia
+      wikis are cited with their plain page URL, never an `oldid` link.
 - [ ] Generic terms use `wikipedia:` interwiki links **whose target pages were
       confirmed to exist on English Wikipedia**; amateur-theatre-scene terms use
       local links; nothing is over-linked.

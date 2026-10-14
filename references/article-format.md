@@ -22,9 +22,6 @@ lead sentences: what it does, when founded, notable for what.>
 == Organisation ==
 <Legal form (e.V.), membership in associations, festival participation.>
 
-== External links ==
-* [<official URL> Official website]
-
 == References ==
 <references />
 
@@ -41,8 +38,11 @@ Notes on the skeleton:
   Wikipedia in `<ref>`s.
 
 - The Amateur Theatre Wiki is English-language, so headings are in English by
-  default (`History`, `Repertoire`, `Venue`, `Organisation`, `External links`,
-  `References`). Keep proper names native in either case.
+  default (`History`, `Repertoire`, `Venue`, `Organisation`, `References`). Keep
+  proper names native in either case.
+- **No `External links` section.** `{{DynamicInfobox}}` already shows the official
+  website and social-media profiles from Wikidata, so don't repeat them in a
+  link list. A URL that matters as a source belongs in a `<ref>`.
 - Drop any section you cannot source. A short, fully-referenced stub is a better
   outcome than padded sections. Three solid sentences under a single lead can be
   enough for a small group.
@@ -200,6 +200,20 @@ and cite it as:
 Never use `https://de.wikipedia.org/wiki/<Title>` in a reference. This rule is for
 references only; `[[wikipedia:...]]` interwiki links keep using plain titles.
 
+**Only Wikimedia projects get `oldid` permalinks.** Regional, city or club wikis that
+happen to run MediaWiki (AW-Wiki, Stadtwikis, GenWiki, …) are not Wikimedia
+projects. Cite them like any other website, with the plain page URL as it appears
+in the browser:
+
+```mediawiki
+<ref name="awwiki">[https://www.aw-wiki.de/index.php/Theatergruppe_1983_Westum_e.V. Theatergruppe 1983 Westum e.V.], AW-Wiki, retrieved 14 October 2026.</ref>
+```
+
+An `index.php?…&oldid=…` URL on such a wiki often can't be captured by the
+archive script, and in the QuickStatements step it would wrongly look like a
+Wikimedia source. Those sources get `S854` + `S813` (plus archive pairs) like any
+web page, never `S143`.
+
 ### Define each name once, with content; reuse it self-closing
 
 The full citation (bracketed link + description) must appear **exactly once** for
@@ -304,9 +318,6 @@ each winter; recent seasons have also included a short youth-group piece.<ref na
 == Organisation ==
 The group is a member of the [[Amateurtheaterverband Niedersachsen e. V.]] and has
 taken part in the [[Niedersächsische Amateurtheatertage]].<ref name="press" />
-
-== External links ==
-* [https://example-speeldeel.de/ Official website]
 
 == References ==
 <references>

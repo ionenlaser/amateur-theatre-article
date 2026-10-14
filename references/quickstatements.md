@@ -116,7 +116,8 @@ its definition in `<references>`:
 Add `S1065`/`S2960` **only if the ref has an archive link**. Never create one
 yourself here.
 
-**Wikimedia source** (a Wikipedia `oldid` permalink or another Wikimedia project):
+**Wikimedia source** (a Wikipedia `oldid` permalink or another Wikimedia project;
+a non-Wikimedia MediaWiki such as a regional wiki is a normal web source, above):
 the reference is **only** `S143 <project QID>` (imported from Wikimedia project),
 e.g. `S143 Q48183` for German Wikipedia. Resolve the QID for other language
 editions or projects. Add no `S854`/`S4656` URL, no `S813` retrieved date and no
