@@ -314,10 +314,16 @@ Work from the finished `.wiki` article (re-read it, in case the archive script h
 updated it), anything already gathered earlier in the conversation with a recorded
 source URL, and one `get_statements` call for the item.
 
-1. Extract the facts the item does **not** already have: inception (`P571`),
+1. Extract the facts the item does **not** already have: inception (`P571`; with two
+   relevant dates, add both with `P1013` criterion used = `Q132555` de jure for the
+   e. V. founding or registration and `Q712144` de facto for the group's actual
+   start, and add a task for the user to set one as preferred after the upload),
    headquarters town (`P159`) and a registered-seat street address (`P6375`
-   qualifier on `P159`), official name (`P1448`), **member counts** (`P2124`, one
-   statement per dated count, each with a `P585` point-in-time qualifier),
+   qualifier on `P159`), official name (`P1448`), **legal form** (`P1454`, usually `Q9299236`
+   registered association for an e. V.; not for a section of a larger club), **member counts** (`P2124`, one
+   statement per dated count, each with a `P585` point-in-time qualifier; sum
+   split counts such as adults + youth, date an undated count to the current
+   year, and add vague counts like "about 80" with `P1480` = `Q5727902` circa),
    **dissolution** (`P576`, only with explicit evidence), **awards received**
    (`P166`, one statement per award and year, with `P585` and, where the item
    exists, `P1027` conferred by and `P1686` for work), aliases, **every official website
@@ -335,7 +341,8 @@ source URL, and one `get_statements` call for the item.
    get only `S143` (imported from Wikimedia project), with no URL or dates.
    Identifiers (website, social media) and aliases get no reference.
 3. Build the V1 command block, percent-encode it programmatically onto
-   `https://qs-dev.toolforge.org/batch/new?v1=`, save the commands to a `.qs` file
+   `https://qs-dev.toolforge.org/batch/new?v1=` (QS 3.0, for every batch: the
+   classic tool has no URL import), save the commands to a `.qs` file
    beside the article, and show the user both. The link opens a draft the user
    reviews and runs while logged in; nothing is saved automatically.
 4. **Awards without a Wikidata item.** An award becomes a `P166` statement only
@@ -348,15 +355,32 @@ source URL, and one `get_statements` call for the item.
    qualify. For each qualifying award, research the award itself (this is the one
    new research round allowed in Step 5), then write a separate creation batch,
    `<base>.award-items.qs`, with the typical award statements listed in
-   `references/quickstatements.md`, and put the pending `P166` lines for the
-   group, with a placeholder for the new award's QID, in the report. Never
-   create items for the awarding body or for people.
+   `references/quickstatements.md`. Write the group's `P166` lines for it to
+   `<base>.pending.qs` with the placeholder `Q<NEW: <Lde label>>`, and list them
+   in the report. If another group in the folder already proposed the same
+   award, reuse its placeholder instead of writing a second `CREATE` block.
+   Never create items for the awarding body or for people.
 5. **Write the QuickStatements report** next to the article as
    `<base>.qs-report.md` (template in `references/quickstatements.md`): what the
    batch adds, what was skipped and why, conflicts between the item and the
    article, the award items proposed for creation (and awards rejected as not
    concrete enough), possible errors on the item that need a manual fix, and
    facts outside the default set.
+6. **Regenerate the folder-wide batch files** (see "Folder-wide batch files" in
+   `references/quickstatements.md`): `000_all.qs` with its `000_all.qs.url`,
+   `000_all.award-items.qs` with its `.url` if any group has award items,
+   `000_all.pending.qs` if any lines wait for a new award, and the combined
+   `000_all.qs-report.md`, and `000_all.tasks.md` if any report has tasks for
+   after the upload. The `000_` prefix sorts them before every
+   group's files. Rebuild them from all groups in the folder, not only the
+   current one.
+
+**When the user reports a created award** ("<award label> is Q…"), resolve its
+placeholder across the whole output folder as described in "Resolving
+placeholders after the award item is created" in `references/quickstatements.md`:
+verify the item, move the pending lines into each group's `.qs`, delete the run
+`CREATE` block, update the reports and regenerate the `000_` files. When
+presenting award-items batches, always tell the user this is the next step.
 
 If the article holds a useful fact of a type outside the default set (e.g.
 described at URL `P973`, a member organisation `P463`), propose it and ask whether

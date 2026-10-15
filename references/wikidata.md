@@ -49,7 +49,8 @@ a Q-id into a name. The official-website value is your primary research seed.
 | **P276** | location | venue, if distinct from HQ |
 | **P463** | member of | the umbrella association — usually a **local** wiki link |
 | **P2002 / P2013 / P2003** | X(Twitter) / Facebook / Instagram | secondary research seeds |
-| **P227 / P214** | GND / VIAF id (needs `include_external_ids=true`) | authority links; pair with `normdata-search` if you want a `{{Normdaten}}` footer |
+| **P2397 / P11245** | YouTube channel ID / YouTube handle | secondary research seeds |
+| **P227 / P214** | GND / VIAF id (needs `include_external_ids=true`) | authority links; pair with `normdata-search`|
 
 You rarely need more than P31 (sanity check), P856 (research seed), P463 (the
 association to link), and a glance at P159/P571 to phrase the lead. The infobox

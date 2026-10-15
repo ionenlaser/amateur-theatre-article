@@ -6,6 +6,8 @@ added snapshot links to its references. Never run it automatically.
 
 The target is QuickStatements 3.0 (`qs-dev.toolforge.org`), which runs V1 commands
 through the Wikibase REST API. Everything below is the V1 subset that tool accepts.
+**Every batch URL goes to QS 3.0**, the award-creation batch included: the
+classic QuickStatements tool doesn't support importing commands by URL.
 
 ## Inputs: what you already have, nothing new
 
@@ -44,17 +46,19 @@ context supports it with a recorded source:
 
 | Fact | Property | Value kind | Reference? |
 |---|---|---|---|
-| Founding / inception | `P571` | time | **yes** |
+| Founding / inception | `P571` + qualifier `P1013` criterion used = `Q712144` de facto / `Q132555` de jure, when there are two dates | time | **yes** |
 | Headquarters town | `P159` | item | **yes** |
 | Street address of the registered seat | `P6375` as qualifier on `P159` | monolingual | **yes** |
 | Official name | `P1448` | monolingual (`de:"… e. V."`) | **yes** |
-| Member count | `P2124` + qualifier `P585` (point in time) | quantity | **yes** |
+| Legal form | `P1454` | item (usually `Q9299236` registered association) | **yes** |
+| Member count | `P2124` + qualifier `P585` (point in time), `P1480` `Q5727902` (circa) if vague | quantity | **yes** |
 | Dissolved | `P576` | time (or `somevalue`) | **yes** |
 | Award received | `P166` + qualifiers `P585`, `P1027`, `P1686`, `P14360` | item | **yes** |
 | Alternative / former names | `Ade` / `Aen` | alias | no (cannot be referenced) |
 | Official website(s) | `P856` | string (URL) | no |
 | Facebook / Instagram / X | `P2013` / `P2003` / `P2002` | string (handle) | no |
-| YouTube channel | `P2397` | string (`UC…` id) | no |
+| YouTube channel ID | `P2397` | string (`UC…` id) | no |
+| YouTube handle | `P11245` | string (handle without `@`) | no |
 | Mastodon | `P4033` | string (`user@instance`) | no |
 
 **Reference the non-trivial statements** (dates, places, addresses, names) and leave
@@ -72,15 +76,50 @@ Rules:
   footer, or a profile you opened), never guessed from the name. Facebook (`P2013`):
   the username from `facebook.com/<username>`; for pages of the form
   `facebook.com/<Name>-<digits>/`, use the numeric id. Instagram (`P2003`): the
-  handle, lowercase, without `@` or query strings. YouTube (`P2397`): only a
-  `/channel/UC…` id, not a video, playlist or `@handle`.
+  handle, lowercase, without `@` or query strings. YouTube channel ID (`P2397`):
+  only a `/channel/UC…` id, not a video or playlist. YouTube handle (`P11245`):
+  the handle from `youtube.com/@<handle>`, without the `@`, query strings or
+  trailing path (`/videos`, `/featured`), keeping its case as shown. A channel
+  can have both; add each one you actually found, and don't derive one from the
+  other.
+- **Inception**: when the sources give one founding date, add it as a plain
+  `P571`. When they give two relevant dates, add **both**, each with the
+  qualifier `P1013` criterion used:
+  - `Q132555` **de jure** for the legal founding: the founding or the register
+    entry of the e. V. (if both are given, the register entry).
+  - `Q712144` **de facto** for when the group itself actually started: its
+    first meeting, rehearsals or performance, before it became a legal entity.
+
+  At most one date of each kind. Leave out dates that would need more than this
+  qualifier to make sense: a renaming, a re-founding after a break, joining or
+  leaving a parent club, or the start of a local theatre tradition older than
+  the group. List them under "Skipped" with the reason. QuickStatements can't
+  set ranks, so whenever you add two `P571` statements, add a rank task (see
+  the report template): the user marks one of them as preferred on Wikidata
+  after the upload. Recommend the de jure date, since a register documents it.
+  If the item already has one of the two dates without the qualifier, add only
+  the missing date with its qualifier, and add a task to put `P1013` on the
+  existing statement by hand.
+- **Legal form**: add `P1454` when a source shows the group's own legal form,
+  usually `Q9299236` registered association (eingetragener Verein) for a German
+  group with "e. V." in its official name, imprint or register entry. Reference
+  the source that shows it (often the imprint or the page that gives the
+  official name). Don't add it for a group that is only a section of a larger
+  club (e.g. a sports club's theatre department): the legal form belongs to the
+  parent club. For other legal forms (gGmbH, GbR, a Dutch or Austrian
+  association), resolve the item with `search_items` and check it with
+  `get_statements` first.
 - **Member counts**: add one `P2124` statement **per dated count** the sources
   give, each with a `P585` point-in-time qualifier for the year (`/9`) or exact
   date the count refers to, and its reference. If a website lists counts for
   several years, add all of them, not just the latest. The infobox shows the
-  most recent one by its `P585`, so no ranks are needed. Skip a count with no
-  date at all, or one only described vaguely ("about", "over 100"). A count
-  stated as "over 100" is not a number. Write plain integers (`117`, no
+  most recent one by its `P585`, so no ranks are needed. When a count is split
+  into exact parts (e.g. 25 adult and 15 youth members), add their sum (40) as a
+  single statement. When a count has no date, assume it is current: use the
+  year of the retrieval date (`S813`) as `P585`, and mention this in the report.
+  A vague count ("about 80", "rund 50", "over 100", "mehr als 60") is added too,
+  as its number (`80`, `100`) with the qualifier `P1480` sourcing circumstances
+  = `Q5727902` circa on the same line. Write plain integers (`117`, no
   separators). Always include the `P585` qualifier on the same line: with it,
   two years with the same number stay separate statements.
 - **Dissolution**: add `P576` only when a source explicitly says the association
@@ -148,7 +187,8 @@ the second one with `!` (e.g. `!S854`).
 ## V1 line format
 
 One command per line, fields separated by TAB. The first field is the item QID,
-repeated on every line. Do **not** use `CREATE` / `LAST`; QS 3.0 rejects `LAST`.
+repeated on every line. `CREATE` / `LAST` belong only in the award-creation batch
+(see "Creating items for missing awards"), never in a group's main batch.
 
 ```
 <QID>	<PROPERTY>	<VALUE>	[<QUALIFIER>	<VALUE> ...]	[<SOURCE>	<VALUE> ...]
@@ -187,6 +227,15 @@ that lacked it, the line would be:
 Q122834859	P571	+1946-00-00T00:00:00Z/9	S854	"https://www.achimer-speeldael.de/chronik"	S813	+2026-10-14T00:00:00Z/11	S1065	"https://web.archive.org/web/20261014133712/https://www.achimer-speeldael.de/chronik"	S2960	+2026-10-14T00:00:00Z/11
 ```
 
+Two founding dates (a hypothetical group that started playing in 1984 and was
+registered as an e. V. in 1991), each with its criterion. The rank task for the
+report follows below:
+
+```
+Q123456789	P571	+1984-00-00T00:00:00Z/9	P1013	Q712144	S854	"https://example-theater.de/chronik"	S813	+2026-10-14T00:00:00Z/11
+Q123456789	P571	+1991-00-00T00:00:00Z/9	P1013	Q132555	S854	"https://example-theater.de/chronik"	S813	+2026-10-14T00:00:00Z/11
+```
+
 A fact taken from German Wikipedia (Kellertheater Hamburg founded 1954):
 
 ```
@@ -200,6 +249,13 @@ count from the club's site):
 ```
 Q17325980	P2124	117	P585	+2019-00-00T00:00:00Z/9	S143	Q48183
 Q17325980	P2124	121	P585	+2024-00-00T00:00:00Z/9	S854	"https://ruhrbuehne-witten.de/verein/"	S813	+2026-10-14T00:00:00Z/11
+```
+
+A vague, undated count ("rund 80 Mitglieder" on the club's site, retrieved in
+2026), dated to the retrieval year and marked as circa:
+
+```
+Q17325980	P2124	80	P585	+2026-00-00T00:00:00Z/9	P1480	Q5727902	S854	"https://ruhrbuehne-witten.de/verein/"	S813	+2026-10-14T00:00:00Z/11
 ```
 
 A dissolution with a known year, and one confirmed without a date:
@@ -249,7 +305,11 @@ invitations, nominations. List these in the report as rejected, with the reason.
 likely variants (with and without the year, the body's name or the legal form)
 with `search_items`. If the awarding body has an item, run a SPARQL query for
 items with `P1027` = that body, since an award is often labelled differently.
-Only when all of that comes up empty is a new item justified.
+Then look in the output folder: if another group's `*.award-items.qs` already
+has a `CREATE` block with the same `Lde` label, or a `*.pending.qs` already uses
+the same placeholder, the award is already proposed. Reuse that placeholder
+exactly and don't write a second `CREATE` block. Only when all of that comes up
+empty is a new item justified.
 
 **Research the award.** A few targeted searches (award name + "verliehen",
 "Preisträger", "Satzung", "Ausschreibung") are allowed here. Use the awarding
@@ -283,9 +343,8 @@ with `S854` + `S813` (and archive pairs if you have them), as for the group.
 
 ### Creation batch
 
-QS 3.0 (`qs-dev`) rejects `LAST`, so award items are created with the classic
-QuickStatements tool, which supports `CREATE` / `LAST`. Write one `CREATE` block
-per award to `<base>.award-items.qs`:
+Write one `CREATE` block per award to `<base>.award-items.qs`, where `<base>` is
+the group whose report first proposed the award:
 
 ```
 CREATE
@@ -300,19 +359,56 @@ LAST	P1001	Q<district>	S854	"<awarding body page>"	S813	+2026-10-14T00:00:00Z/11
 LAST	P571	+2005-00-00T00:00:00Z/9	S854	"<awarding body page>"	S813	+2026-10-14T00:00:00Z/11
 ```
 
-Batch URL (classic tool, percent-encoded the same way):
+Its batch URL uses QS 3.0 like every other batch (see "Building the batch URL").
 
-```python
-url = "https://quickstatements.toolforge.org/#/v1=" + urllib.parse.quote(commands, safe="")
-```
+### Pending lines and the placeholder
 
-A new QID is only known after the batch has run, so the group's `P166` statement
-for that award **can't go into the same batch**. Put it in the report as a pending
-line with a placeholder, for the user to fill in and run afterwards:
+A new QID is only known after the creation batch has run, so the group's `P166`
+statements for that award **can't go into the same batch**. Write them to
+`<base>.pending.qs` (one file per group, next to its `.qs`), with the
+placeholder `Q<NEW: <Lde label>>` in place of the award's QID. The label must be
+the creation block's `Lde` label, character for character: it is the key that
+links the placeholder to the item once it exists.
 
 ```
 Q123456789	P166	Q<NEW: Beispieler Amateurtheaterpreis>	P585	+2018-00-00T00:00:00Z/9	S854	"<winners list URL>"	S813	+2026-10-14T00:00:00Z/11
 ```
+
+Show the same lines in the report under "New items proposed". Pending lines
+never go into `<base>.qs`: QuickStatements would reject the placeholder.
+
+### Resolving placeholders after the award item is created
+
+Tell the user (in the report and when presenting the batches) how to finish:
+
+1. Open `000_all.award-items.qs.url` (or the group's award-items link) and run
+   the batch in QuickStatements while logged in.
+2. Note the new QID from the batch result, or find the new item on Wikidata by
+   its label.
+3. Tell Claude "<award label> is Q…", e.g. "Beispieler Amateurtheaterpreis is
+   Q123456789". Claude then fills in the placeholder in every group (below).
+   Without Claude: `sed -i 's/Q<NEW: Beispieler Amateurtheaterpreis>/Q123456789/g' *.pending.qs`,
+   then move the lines into each group's `.qs` by hand.
+
+When the user gives you the QID, do this for the whole output folder, with no new
+research:
+
+1. **Verify the item** with `get_statements`: its label matches the placeholder,
+   and its `P31` and `P1027` match the creation block. If they don't, stop and
+   ask. If the user gives only the label, find the QID with `search_items`.
+2. **Check for existing statements** with one SPARQL query for items with `P166`
+   = the new QID, so you don't add a line twice.
+3. For each `*.pending.qs` that has the placeholder: replace it with the QID,
+   **append those lines to the group's `<base>.qs`** (create the file if
+   missing), and remove them from the `.pending.qs`. Delete a `.pending.qs` once
+   it's empty.
+4. **Delete the award's `CREATE` block** from its `.award-items.qs`, since it has
+   run. Delete the file if nothing is left.
+5. **Update each affected report**: the main batch line (new command count and
+   rebuilt URL), one row per new `P166` under "Added statements", the award
+   moved from "New items proposed" to "Matched to existing items" as
+   "<label> → Q… (created <date>)", and the pending line rewritten with the QID.
+6. Regenerate the folder-wide batch files.
 
 ## Building the batch URL
 
@@ -343,7 +439,9 @@ user whether it should join the default set before treating it as standard.
 
 Write `<base>.qs-report.md` next to the article and the `.qs` file. It is for
 the person who reviews and runs the batches, so make every point actionable.
-Keep a heading even when it is empty, with "None."
+Leave out every section, sub-heading and batch line that would be empty: no
+"None.", no "Award items: none." A group with nothing to report beyond the
+added statements gets a report with only the title, the batches and the table.
 
 ```markdown
 # QuickStatements report: <Group name> (<QID>)
@@ -352,7 +450,10 @@ Generated <date> from `<base>.wiki`.
 
 ## Batches
 - Main batch: `<base>.qs`, <n> commands, [open in QuickStatements](<qs-dev URL>)
-- Award items: `<base>.award-items.qs`, <n> new items, [open in QuickStatements](<classic URL>)
+- Award items: `<base>.award-items.qs`, <n> new items, [open in QuickStatements](<qs-dev URL>)
+- Pending: `<base>.pending.qs`, <n> lines waiting for: <award label> (created by
+  `<file>.award-items.qs`). After running that batch, tell Claude "<award label>
+  is Q…" to fill in the placeholder.
 
 ## Added statements
 | Property | Value | Source |
@@ -361,7 +462,7 @@ Generated <date> from `<base>.wiki`.
 
 ## Skipped
 - P571 inception: already on the item (1946).
-- P2124 member count "over 100" (2015): not a number.
+- P571 1969 (renaming to the present name): a renaming is not a founding date.
 
 ## Conflicts between the item and the article
 - Item says inception 1948; the Chronik and the press say 1946. Not changed;
@@ -386,7 +487,90 @@ Generated <date> from `<base>.wiki`.
 
 ## Open questions
 - …
+
+## Tasks after the upload
+- [ ] [Q123456789](https://www.wikidata.org/wiki/Q123456789#P571) Example Theater:
+  set P571 1991 (de jure, e. V. registered) to preferred rank; 1984 (de facto)
+  stays normal.
 ```
+
+"Tasks after the upload" lists what QuickStatements can't do and the user must
+do by hand on Wikidata once the batch has run: setting a preferred rank between
+two inception dates, or adding `P1013` to an existing statement. Write each as
+a `- [ ]` checklist line that starts with the item link.
 
 Only report possible errors on the item; the batches never remove or change
 existing statements.
+
+## Folder-wide batch files
+
+After writing a group's `.qs` and `.qs-report.md`, regenerate the combined files
+for the whole output folder, so one review and one run cover every group. They
+start with `000_` so they sort before every group's files:
+
+| File | Content |
+|---|---|
+| `000_all.qs` | every `<base>.qs`, alphabetically by file name |
+| `000_all.qs.url` | the `qs-dev` batch URL for `000_all.qs` |
+| `000_all.award-items.qs` | every `<base>.award-items.qs` (only if there are any) |
+| `000_all.award-items.qs.url` | the `qs-dev` batch URL for `000_all.award-items.qs` |
+| `000_all.pending.qs` | every `<base>.pending.qs` (only if there are any; no URL, since placeholders can't run) |
+| `000_all.qs-report.md` | an overview, then every `<base>.qs-report.md` with headings demoted one level |
+| `000_all.tasks.md` | every "Tasks after the upload" checklist line from the group reports (only if there are any) |
+
+The `.url` files are internet shortcuts (`[InternetShortcut]` / `URL=…`), so a
+file manager opens them in the browser. Rebuild all of them from scratch each
+time (the snippet deletes the old `000_` files first), never append, and skip the `000_` files themselves when collecting:
+
+```python
+import pathlib, re, urllib.parse, datetime
+d = pathlib.Path("<output folder>")
+for p in d.glob("000_*"):
+    p.unlink()
+def group_files(suffix):
+    return sorted(p for p in d.glob("*" + suffix)
+                  if not p.name.startswith("000_")
+                  and not (suffix == ".qs" and p.name.endswith(".award-items.qs")))
+def write_batch(name, files, base_url):
+    cmds = "\n".join(l for p in files for l in p.read_text().splitlines() if l.strip())
+    (d / name).write_text(cmds + "\n")
+    url = base_url + urllib.parse.quote(cmds, safe="")
+    (d / (name + ".url")).write_text(f"[InternetShortcut]\nURL={url}\n")
+    return cmds.count("\n") + 1, url
+main = group_files(".qs")
+n_main, url_main = write_batch("000_all.qs", main, "https://qs-dev.toolforge.org/batch/new?v1=")
+awards = group_files(".award-items.qs")
+if awards:
+    n_aw, url_aw = write_batch("000_all.award-items.qs", awards, "https://qs-dev.toolforge.org/batch/new?v1=")
+pending = group_files(".pending.qs")
+if pending:
+    (d / "000_all.pending.qs").write_text("".join(p.read_text() for p in pending))
+reports = group_files(".qs-report.md")
+out = [f"# QuickStatements report: all groups\n\nGenerated {datetime.date.today()} "
+       f"from {len(reports)} group reports.\n\n## Batches\n"
+       f"- Main batch: `000_all.qs`, {n_main} commands from {len(main)} groups, "
+       f"[open in QuickStatements]({url_main})"]
+if awards:
+    out.append(f"- Award items: `000_all.award-items.qs`, {n_aw} commands from {len(awards)} groups, "
+               f"[open in QuickStatements]({url_aw})")
+if pending:
+    labels = sorted(set(re.findall(r"Q<NEW: ([^>]+)>", "".join(p.read_text() for p in pending))))
+    out.append(f"- Pending: `000_all.pending.qs`, waiting for: {', '.join(labels)}. Run the "
+               "award-items batch, then tell Claude \"<award label> is Q…\" to fill in the placeholders.")
+for p in reports:
+    out.append("\n" + re.sub(r"^(#+) ", r"#\1 ", p.read_text().strip(), flags=re.M))
+(d / "000_all.qs-report.md").write_text("\n".join(out) + "\n")
+tasks = []
+for p in reports:
+    m = re.search(r"^## Tasks after the upload\n(.*?)(?=^## |\Z)", p.read_text(), re.M | re.S)
+    if m:
+        tasks.append(m.group(1).strip())
+if tasks:
+    (d / "000_all.tasks.md").write_text(
+        "# Tasks after the upload\n\nDo these on Wikidata once `000_all.qs` has run.\n\n"
+        + "\n".join(tasks) + "\n")
+```
+
+A combined URL can get long. If QuickStatements doesn't open it, paste the
+content of `000_all.qs` into its import box instead. Tell the user the command
+count and the URL length.
