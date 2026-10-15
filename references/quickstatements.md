@@ -93,13 +93,11 @@ Rules:
   At most one date of each kind. Leave out dates that would need more than this
   qualifier to make sense: a renaming, a re-founding after a break, joining or
   leaving a parent club, or the start of a local theatre tradition older than
-  the group. List them under "Skipped" with the reason. QuickStatements can't
-  set ranks, so whenever you add two `P571` statements, add a rank task (see
-  the report template): the user marks one of them as preferred on Wikidata
-  after the upload. Recommend the de jure date, since a register documents it.
-  If the item already has one of the two dates without the qualifier, add only
-  the missing date with its qualifier, and add a task to put `P1013` on the
-  existing statement by hand.
+  the group. List them under "Skipped" with the reason. When the item ends up
+  with both dates, mark the **de jure** one preferred with `R+` (a register
+  documents it); the de facto one stays normal. If the item already has one of
+  the two dates without the qualifier, repeat that statement with its `P1013`
+  (and `R+` if it is the de jure date) to update it, and add the missing date.
 - **Legal form**: add `P1454` when a source shows the group's own legal form,
   usually `Q9299236` registered association (eingetragener Verein) for a German
   group with "e. V." in its official name, imprint or register entry. Reference
@@ -157,6 +155,31 @@ Rules:
   almost never have items.
 - A fact whose only source is Wikidata itself is not a source; skip it.
 
+## Fixing existing statements
+
+QuickStatements 3.0 can change existing statements, so fix clear errors in the
+batch instead of leaving them for the user. Only fix what the article's sources
+contradict outright; anything less certain goes to "Conflicts" in the report.
+
+- **Wrong value** (a wrong town in `P159`, a wrong founding year): switch it with
+  `SWITCH_VALUE`, which keeps the statement's qualifiers and references, then add
+  your own reference on a second line. Don't switch when the existing statement
+  has a reliable reference (not just `S143`) that backs the old value: that is a
+  conflict between sources, so report it instead.
+- **Wrong property, right value** (e.g. a town in `P131` that is really the
+  seat): `SWITCH_PROPERTY`, only between properties of the same data type.
+- **Outdated value that was once correct** (an old website, a former name in
+  `P1448`): don't switch it. Add the new value with `R+` so the infobox shows it,
+  and leave the old one at normal rank.
+- **Wrong rank**: set it by repeating the statement with `R+`, `R0` or `R-`.
+  Deprecate (`R-`) only a value that was never correct, with the qualifier
+  `P2241` reason for deprecated rank (resolve the reason item with
+  `search_items`; never guess it).
+- Never remove statements (`-` prefix, `REMOVE_QUAL`, `REMOVE_REF`).
+
+List every change to an existing statement in the report under "Corrections",
+with the old value, the new one and the source.
+
 ## Turning a `<ref>` into a Wikidata reference
 
 Find the ref the article attaches to the sentence, then build the source pairs from
@@ -204,11 +227,25 @@ repeated on every line. `CREATE` / `LAST` belong only in the award-creation batc
 | Unknown value | `somevalue` | `somevalue` |
 | Alias / label / description | `Ade` / `Lde` / `Dde` + quoted text | `Ade "SeTA"` |
 
-A qualifier is added by repeating the existing main statement and appending the
-qualifier pair; QuickStatements matches the existing statement:
+A **rank** goes directly after the value, before any qualifiers: `R+` preferred,
+`R0` normal (the default), `R-` deprecated. On an existing statement it changes
+the rank.
+
+A qualifier, rank or reference is added to an existing statement by repeating
+the main statement and appending it; QuickStatements matches the existing
+statement:
 
 ```
 Q122798558	P159	Q1726	P6375	de:"Sudetendeutsche Straße 40, 80937 München"	S854	"<source URL>"	S813	+2026-06-30T00:00:00Z/11
+```
+
+Switching a value keeps the old qualifiers and references; the second line adds
+the new reference (fields after the command: item, property, old value, new
+value):
+
+```
+SWITCH_VALUE	Q123456789	P159	Q<wrong town>	Q<right town>
+Q123456789	P159	Q<right town>	S854	"<imprint URL>"	S813	+2026-10-14T00:00:00Z/11
 ```
 
 ## Worked example
@@ -228,12 +265,12 @@ Q122834859	P571	+1946-00-00T00:00:00Z/9	S854	"https://www.achimer-speeldael.de/c
 ```
 
 Two founding dates (a hypothetical group that started playing in 1984 and was
-registered as an e. V. in 1991), each with its criterion. The rank task for the
-report follows below:
+registered as an e. V. in 1991), each with its criterion and the de jure date
+preferred:
 
 ```
 Q123456789	P571	+1984-00-00T00:00:00Z/9	P1013	Q712144	S854	"https://example-theater.de/chronik"	S813	+2026-10-14T00:00:00Z/11
-Q123456789	P571	+1991-00-00T00:00:00Z/9	P1013	Q132555	S854	"https://example-theater.de/chronik"	S813	+2026-10-14T00:00:00Z/11
+Q123456789	P571	+1991-00-00T00:00:00Z/9	R+	P1013	Q132555	S854	"https://example-theater.de/chronik"	S813	+2026-10-14T00:00:00Z/11
 ```
 
 A fact taken from German Wikipedia (Kellertheater Hamburg founded 1954):
@@ -464,13 +501,15 @@ Generated <date> from `<base>.wiki`.
 - P571 inception: already on the item (1946).
 - P571 1969 (renaming to the present name): a renaming is not a founding date.
 
-## Conflicts between the item and the article
-- Item says inception 1948; the Chronik and the press say 1946. Not changed;
-  check and fix by hand.
+## Corrections
+- P159 headquarters: Q<wrong town> → Q<right town> (SWITCH_VALUE), per the
+  imprint; old references kept, new one added.
+- P856 https://new-domain.de/ added as preferred; http://old-domain.de/ no
+  longer resolves and stays normal.
 
-## Possible errors on the item
-- P856 http://old-domain.de/ no longer resolves; the group now uses
-  https://new-domain.de/ (added). Consider deprecating the old one.
+## Conflicts between the item and the article
+- Item says inception 1948 with a press reference; the Chronik says 1946. Not
+  changed; check by hand.
 
 ## Awards
 ### Matched to existing items
@@ -487,20 +526,7 @@ Generated <date> from `<base>.wiki`.
 
 ## Open questions
 - …
-
-## Tasks after the upload
-- [ ] [Q123456789](https://www.wikidata.org/wiki/Q123456789#P571) Example Theater:
-  set P571 1991 (de jure, e. V. registered) to preferred rank; 1984 (de facto)
-  stays normal.
 ```
-
-"Tasks after the upload" lists what QuickStatements can't do and the user must
-do by hand on Wikidata once the batch has run: setting a preferred rank between
-two inception dates, or adding `P1013` to an existing statement. Write each as
-a `- [ ]` checklist line that starts with the item link.
-
-Only report possible errors on the item; the batches never remove or change
-existing statements.
 
 ## Folder-wide batch files
 
@@ -516,7 +542,6 @@ start with `000_` so they sort before every group's files:
 | `000_all.award-items.qs.url` | the `qs-dev` batch URL for `000_all.award-items.qs` |
 | `000_all.pending.qs` | every `<base>.pending.qs` (only if there are any; no URL, since placeholders can't run) |
 | `000_all.qs-report.md` | an overview, then every `<base>.qs-report.md` with headings demoted one level |
-| `000_all.tasks.md` | every "Tasks after the upload" checklist line from the group reports (only if there are any) |
 
 The `.url` files are internet shortcuts (`[InternetShortcut]` / `URL=…`), so a
 file manager opens them in the browser. Rebuild all of them from scratch each
@@ -560,15 +585,6 @@ if pending:
 for p in reports:
     out.append("\n" + re.sub(r"^(#+) ", r"#\1 ", p.read_text().strip(), flags=re.M))
 (d / "000_all.qs-report.md").write_text("\n".join(out) + "\n")
-tasks = []
-for p in reports:
-    m = re.search(r"^## Tasks after the upload\n(.*?)(?=^## |\Z)", p.read_text(), re.M | re.S)
-    if m:
-        tasks.append(m.group(1).strip())
-if tasks:
-    (d / "000_all.tasks.md").write_text(
-        "# Tasks after the upload\n\nDo these on Wikidata once `000_all.qs` has run.\n\n"
-        + "\n".join(tasks) + "\n")
 ```
 
 A combined URL can get long. If QuickStatements doesn't open it, paste the

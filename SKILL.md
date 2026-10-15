@@ -309,7 +309,7 @@ Do **not** start Step 5 on your own after writing the article; wait for the user
 ## Step 5 — Wikidata enrichment via QuickStatements (on request only)
 
 Read `references/quickstatements.md` first. Do not start a new research round,
-except for awards that need a new Wikidata item (point 4).
+except for awards that need a new Wikidata item (point 5).
 Work from the finished `.wiki` article (re-read it, in case the archive script has
 updated it), anything already gathered earlier in the conversation with a recorded
 source URL, and one `get_statements` call for the item.
@@ -317,7 +317,7 @@ source URL, and one `get_statements` call for the item.
 1. Extract the facts the item does **not** already have: inception (`P571`; with two
    relevant dates, add both with `P1013` criterion used = `Q132555` de jure for the
    e. V. founding or registration and `Q712144` de facto for the group's actual
-   start, and add a task for the user to set one as preferred after the upload),
+   start, and mark the de jure one preferred with `R+`),
    headquarters town (`P159`) and a registered-seat street address (`P6375`
    qualifier on `P159`), official name (`P1448`), **legal form** (`P1454`, usually `Q9299236`
    registered association for an e. V.; not for a section of a larger club), **member counts** (`P2124`, one
@@ -345,7 +345,12 @@ source URL, and one `get_statements` call for the item.
    classic tool has no URL import), save the commands to a `.qs` file
    beside the article, and show the user both. The link opens a draft the user
    reviews and runs while logged in; nothing is saved automatically.
-4. **Awards without a Wikidata item.** An award becomes a `P166` statement only
+4. **Fix clear errors on the item** in the same batch (see "Fixing existing
+   statements" in `references/quickstatements.md`): `SWITCH_VALUE` for a wrong
+   value such as a wrong town, `R+`/`R-` for ranks. Only when the article's
+   sources contradict the item outright and the old value has no reliable
+   reference; otherwise report a conflict. Never remove statements.
+5. **Awards without a Wikidata item.** An award becomes a `P166` statement only
    if the award has an item. When it has none (checked with `search_items` on
    the native and the English name), decide whether it deserves one: it must be
    an **official, concrete prize**, with a fixed name, an identifiable awarding
@@ -360,18 +365,17 @@ source URL, and one `get_statements` call for the item.
    in the report. If another group in the folder already proposed the same
    award, reuse its placeholder instead of writing a second `CREATE` block.
    Never create items for the awarding body or for people.
-5. **Write the QuickStatements report** next to the article as
+6. **Write the QuickStatements report** next to the article as
    `<base>.qs-report.md` (template in `references/quickstatements.md`): what the
    batch adds, what was skipped and why, conflicts between the item and the
    article, the award items proposed for creation (and awards rejected as not
-   concrete enough), possible errors on the item that need a manual fix, and
-   facts outside the default set.
-6. **Regenerate the folder-wide batch files** (see "Folder-wide batch files" in
+   concrete enough), corrections made to existing statements, conflicts left
+   for a manual check, and facts outside the default set.
+7. **Regenerate the folder-wide batch files** (see "Folder-wide batch files" in
    `references/quickstatements.md`): `000_all.qs` with its `000_all.qs.url`,
    `000_all.award-items.qs` with its `.url` if any group has award items,
    `000_all.pending.qs` if any lines wait for a new award, and the combined
-   `000_all.qs-report.md`, and `000_all.tasks.md` if any report has tasks for
-   after the upload. The `000_` prefix sorts them before every
+   `000_all.qs-report.md`. The `000_` prefix sorts them before every
    group's files. Rebuild them from all groups in the folder, not only the
    current one.
 

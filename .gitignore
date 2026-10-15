@@ -1,2 +1,5 @@
 *.pyc
 *.wiki
+*.qs
+articles/
+articles2/
