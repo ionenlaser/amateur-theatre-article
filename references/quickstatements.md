@@ -23,9 +23,11 @@ To keep this step cheap, **do not start a new research round**. Work from:
 3. **One `get_statements(<QID>, include_external_ids=true)` call** to see which
    statements the item already has. Skip anything already present.
 
-Web searches or fetches made only for this step are out of scope. The one exception
-is cheap: if the research context doesn't already list the group's social-media
-links, you may fetch the official homepage once and read its profile links.
+Web searches or fetches made only for this step are out of scope, with two
+exceptions: if the research context doesn't already list the group's social-media
+links, you may fetch the official homepage once and read its profile links; and
+for an award that needs a new item, you may research the award itself (see
+"Creating items for missing awards").
 
 ## Which facts to extract
 
@@ -95,8 +97,9 @@ Rules:
   "award" class), resolved with `search_items` on the exact award name and
   checked with `get_statements` that it really is that prize (its `P31` is an
   award/prize, and its conferring body matches). **If the award has no item, do
-  not create one and do not substitute a broader item**: list it for the user
-  as "no Wikidata item yet" instead. Qualifiers, all on the same line:
+  not substitute a broader item**: either propose a new item for it (see
+  "Creating items for missing awards") or list it in the report as "no Wikidata
+  item yet". Qualifiers, all on the same line:
   - `P585` point in time: the year (`/9`) or exact date the prize was awarded.
     Always include it: it keeps repeated wins of the same prize as separate
     statements.
@@ -223,6 +226,94 @@ Q18289439	Ade	"SeTA"
 Q122834860	P2013	"ExampleTheatreBremen"
 ```
 
+## Creating items for missing awards
+
+When an award from the article has no Wikidata item, decide whether to propose
+one.
+
+**Is it concrete enough?** Propose an item only when all of these hold:
+
+- It has a **fixed, official name** (`Bayerischer Amateurtheaterpreis`,
+  `Kulturpreis der Stadt Achim`), not a description ("a prize at the festival").
+- It has an **identifiable awarding body**: an association, a municipality, a
+  foundation, a festival.
+- There is **evidence about the award itself**: a winners list, a statute or
+  call for entries, the awarding body's page, or press coverage that names the
+  prize. Ideally it was awarded more than once or is meant to recur.
+
+Not concrete enough: certificates of thanks, honorary mentions without a prize
+name, "Publikumsliebling" polls by a newspaper with no further trace, festival
+invitations, nominations. List these in the report as rejected, with the reason.
+
+**Check for duplicates first.** Search the native name, the English name, and
+likely variants (with and without the year, the body's name or the legal form)
+with `search_items`. If the awarding body has an item, run a SPARQL query for
+items with `P1027` = that body, since an award is often labelled differently.
+Only when all of that comes up empty is a new item justified.
+
+**Research the award.** A few targeted searches (award name + "verliehen",
+"Preisträger", "Satzung", "Ausschreibung") are allowed here. Use the awarding
+body's own page as the main reference.
+
+### Typical award statements
+
+Add what the sources support; leave out the rest. Resolve every item value with
+`search_items` and check it with `get_statements`; never guess a QID or PID.
+
+| Statement | Property | Value | Notes |
+|---|---|---|---|
+| Labels | `Lde`, `Len` | text | Native name as `Lde`; `Len` the same name unless an official English one exists |
+| Descriptions | `Dde`, `Den` | text | e.g. `Den "amateur theatre award of the Verband Bayerischer Amateurtheater"` |
+| Aliases | `Ade` | text | Short forms or former names found in sources |
+| Instance of | `P31` | item | The most specific existing class: theatre award, culture prize, or award |
+| Conferred by | `P1027` | item | Awarding body; skip if it has no item (don't create one) |
+| Country | `P17` | item | |
+| Applies to jurisdiction | `P1001` | item | The region or town the prize covers (state, district, municipality) |
+| Official name | `P1448` | monolingual | `de:"…"` |
+| Inception | `P571` | time | Year the prize was founded or first awarded |
+| Dissolved / abolished | `P576` | time | Only with explicit evidence that it was discontinued |
+| Part of | `P361` | item | The festival or competition the prize belongs to, if it has an item |
+| Named after | `P138` | item | Only if the namesake already has an item |
+| Prize money | `P2121` | quantity with unit | e.g. `5000U<euro QID>`; add `P585` for the year the amount applies to |
+| Event interval | `P2257` | quantity with unit | e.g. `1U<year QID>` for an annual prize, `2U<year QID>` for biennial |
+| Official website | `P856` | URL | The award's own page at the awarding body, if it has one |
+
+Reference every statement except labels, descriptions, aliases and the website
+with `S854` + `S813` (and archive pairs if you have them), as for the group.
+
+### Creation batch
+
+QS 3.0 (`qs-dev`) rejects `LAST`, so award items are created with the classic
+QuickStatements tool, which supports `CREATE` / `LAST`. Write one `CREATE` block
+per award to `<base>.award-items.qs`:
+
+```
+CREATE
+LAST	Lde	"Beispieler Amateurtheaterpreis"
+LAST	Len	"Beispieler Amateurtheaterpreis"
+LAST	Dde	"Preis für Amateurtheater im Landkreis Beispiel"
+LAST	Den	"amateur theatre award in the district of Beispiel, Germany"
+LAST	P31	Q<theatre award class>	S854	"<awarding body page>"	S813	+2026-10-14T00:00:00Z/11
+LAST	P1027	Q<awarding body>	S854	"<awarding body page>"	S813	+2026-10-14T00:00:00Z/11
+LAST	P17	Q<Germany>
+LAST	P1001	Q<district>	S854	"<awarding body page>"	S813	+2026-10-14T00:00:00Z/11
+LAST	P571	+2005-00-00T00:00:00Z/9	S854	"<awarding body page>"	S813	+2026-10-14T00:00:00Z/11
+```
+
+Batch URL (classic tool, percent-encoded the same way):
+
+```python
+url = "https://quickstatements.toolforge.org/#/v1=" + urllib.parse.quote(commands, safe="")
+```
+
+A new QID is only known after the batch has run, so the group's `P166` statement
+for that award **can't go into the same batch**. Put it in the report as a pending
+line with a placeholder, for the user to fill in and run afterwards:
+
+```
+Q123456789	P166	Q<NEW: Beispieler Amateurtheaterpreis>	P585	+2018-00-00T00:00:00Z/9	S854	"<winners list URL>"	S813	+2026-10-14T00:00:00Z/11
+```
+
 ## Building the batch URL
 
 Percent-encode the whole command block programmatically, never by hand. A raw `+`
@@ -242,9 +333,60 @@ show the user both the readable commands and the batch URL. The URL opens a draf
 in QuickStatements: the user must be logged in, reviews it, and runs it themselves.
 Nothing is saved automatically.
 
-Below the URL, list any award from the article that was **not** added because
-it has no Wikidata item, so the user can decide whether to create one.
+Then write the report, below.
 
 If the article holds a useful fact outside the table above (for example
 described at URL `P973` or a member organisation `P463`), propose it and ask the
 user whether it should join the default set before treating it as standard.
+
+## The QuickStatements report
+
+Write `<base>.qs-report.md` next to the article and the `.qs` file. It is for
+the person who reviews and runs the batches, so make every point actionable.
+Keep a heading even when it is empty, with "None."
+
+```markdown
+# QuickStatements report: <Group name> (<QID>)
+
+Generated <date> from `<base>.wiki`.
+
+## Batches
+- Main batch: `<base>.qs`, <n> commands, [open in QuickStatements](<qs-dev URL>)
+- Award items: `<base>.award-items.qs`, <n> new items, [open in QuickStatements](<classic URL>)
+
+## Added statements
+| Property | Value | Source |
+|---|---|---|
+| P571 inception | 1946 | Chronik (archived) |
+
+## Skipped
+- P571 inception: already on the item (1946).
+- P2124 member count "over 100" (2015): not a number.
+
+## Conflicts between the item and the article
+- Item says inception 1948; the Chronik and the press say 1946. Not changed;
+  check and fix by hand.
+
+## Possible errors on the item
+- P856 http://old-domain.de/ no longer resolves; the group now uses
+  https://new-domain.de/ (added). Consider deprecating the old one.
+
+## Awards
+### Matched to existing items
+- Bayerischer Amateurtheaterpreis 2018 → Q<id>
+### New items proposed
+- *Beispieler Amateurtheaterpreis* (Landkreis Beispiel, since 2005): why it
+  qualifies, sources used, and the pending P166 line:
+  `Q123456789	P166	Q<NEW: Beispieler Amateurtheaterpreis>	P585	+2018-00-00T00:00:00Z/9	…`
+### Not concrete enough
+- "Publikumsliebling 2019" (newspaper poll): no awarding statute or winners list.
+
+## Proposals outside the default set
+- P463 member of Amateurtheaterverband Niedersachsen e. V. (Q<id>): add?
+
+## Open questions
+- …
+```
+
+Only report possible errors on the item; the batches never remove or change
+existing statements.

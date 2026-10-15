@@ -27,18 +27,13 @@ lead sentences: what it does, when founded, notable for what.>
 
 == References ==
 <references />
-
-{{Wikipedia article|<German Wikipedia title>|<Native name>}}   <!-- only if a German Wikipedia article exists -->
 ```
 
 Notes on the skeleton:
 
-- **Wikipedia article note.** If the group has a German Wikipedia article, end
-  the page with `{{Wikipedia article|<title>}}` as its very last line, after the
-  references. Parameter 1 is the German Wikipedia title, parameter 2 the name shown
-  in bold (omit it when identical to the title). It renders "**Name** on German
-  Wikipedia" with a link. It's not a source, so it doesn't replace citing
-  Wikipedia in `<ref>`s.
+- **No Wikipedia note template.** `{{DynamicInfobox}}` links the group's
+  Wikipedia articles from the Wikidata sitelinks, so don't add
+  `{{Wikipedia article}}` or a similar note at the end of the page.
 
 - The Amateur Theatre Wiki is English-language, so headings are in English by
   default (`History`, `Repertoire`, `Venue`, `Organisation`, `References`). Keep
@@ -46,6 +41,9 @@ Notes on the skeleton:
 - **No `External links` section.** `{{DynamicInfobox}}` already shows the official
   website and social-media profiles from Wikidata, so don't repeat them in a
   link list. A URL that matters as a source belongs in a `<ref>`.
+- **`{{Stub}}`** goes right after `{{AIGenerated}}` when the Wikidata item is the
+  only source (see "Wikidata-only stubs" below). The template adds
+  `Category:Stub` itself, so the "no categories" rule still holds for the article.
 - Drop any section you cannot source. A short, fully-referenced stub is a better
   outcome than padded sections. Three solid sentences under a single lead can be
   enough for a small group.
@@ -94,7 +92,7 @@ The group stages one open-air production each summer. Its early seasons were
 devoted to Shakespeare; later productions include modern and contemporary drama.<ref name="dewiki" />
 
 {| class="wikitable sortable"
-|+ Selected productions<ref name="dewiki" />
+|+ Productions<ref name="dewiki" />
 ! Year !! Title !! Author !! Notes
 |-
 | 2001 || ''Much Ado About Nothing'' || [[wikipedia:William Shakespeare|William Shakespeare]] || First production
@@ -115,13 +113,19 @@ Table rules:
   title in brackets only when the play is well known under it.
 - **Cite the table once**, in its caption (`|+ … <ref …/>`), when one source covers
   every row. Add a ref in a row only for the rows that come from a different source.
-  Don't put the same ref in every row.
+  Don't put the same ref in every row. A complete list merged from several sources
+  (own chronicle, archived old site, press) usually needs a caption ref for the
+  main source plus row refs for the rest.
 - Linking follows the usual rules: link a play or author to English Wikipedia only
   when that article exists, and link each one once, at first mention in the table.
-- Keep it selective. For a group with decades of productions, list the notable or
-  representative ones (first production, anniversaries, award winners, recent
-  seasons) and say so in the caption ("Selected productions"). Don't copy a
-  complete production history.
+- **Aim for completeness.** List every production the sources document, from the
+  first to the most recent, even for a group with decades of productions; a long
+  table is fine. Revivals get their own row with a note ("revival of 1987
+  production"). Caption the table "Productions" when the list is complete and
+  "Productions (incomplete)" when there are known gaps, and say in the prose
+  above it which years are missing. Use "Selected productions" only when the
+  sources themselves offer just a selection. Never pad gaps with guessed titles
+  or years.
 
 ## Link routing: interwiki vs. local
 
@@ -204,6 +208,34 @@ template-call text.
 ```
 
 Reuse: `<ref name="site" />`
+
+### Wikidata-only stubs
+
+When research finds no source besides the Wikidata item, the article is a stub:
+
+- Put `{{Stub}}` between `{{AIGenerated}}` and `{{DynamicInfobox}}`.
+- Write only a lead of one to three sentences from the item's statements: name,
+  type of group, town, and founding year or other facts the item holds. No
+  section headings except `== References ==`.
+- Cite the item with an `oldid` permalink to the revision you read, like a
+  Wikipedia source (Wikidata is a Wikimedia project). Get the revision id from
+  `https://www.wikidata.org/w/api.php?action=query&prop=revisions&rvprop=ids&titles=<QID>&format=json`.
+- Only use statements that have a value you can state plainly. Don't turn the
+  description or the absence of statements into claims ("is no longer active").
+
+```mediawiki
+{{AIGenerated}}
+{{Stub}}
+{{DynamicInfobox|qid=Q123456789}}
+
+'''Theatergruppe Beispieldorf''' is an amateur theatre group in
+[[wikipedia:Beispieldorf|Beispieldorf]], Bavaria, Germany, founded in 1978.<ref name="wikidata">[https://www.wikidata.org/w/index.php?title=Q123456789&oldid=2345678901 Theatergruppe Beispieldorf (Q123456789)], Wikidata, retrieved 15 October 2026.</ref>
+
+== References ==
+<references />
+```
+
+Remove `{{Stub}}` as soon as the article cites any other source.
 
 ### Wikipedia sources: cite the revision (`oldid`)
 

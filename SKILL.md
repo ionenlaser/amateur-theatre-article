@@ -27,8 +27,9 @@ to read the item just enough to know *what the group is called* and *where to go
 looking*, then write the prose, the context, and the citations that Wikidata and
 the infobox cannot supply on their own.
 
-Work in four steps. Read `references/wikidata.md` before step 1 and
-`references/article-format.md` before step 3. Step 5 (Wikidata enrichment) is
+Work in four steps. Read `references/wikidata.md` before step 1,
+`references/article-format.md` before step 3 and `references/report-format.md`
+before step 4, which ends with a feedback report. Step 5 (Wikidata enrichment) is
 optional and runs only when the user asks for it; read
 `references/quickstatements.md` before it.
 
@@ -108,6 +109,22 @@ membership, or press coverage.
   winners, and festival pages are typical sources; prefer the awarding body's own
   list when you can find it. Nominations and shortlists are not awards; mention
   them only as such.
+- **Try to assemble the complete repertoire.** Aim for a list of *every*
+  production the group has staged, each with year, title and author, not just a
+  few highlights. Look for the group's own production history first: pages
+  titled `Chronik`, `Archiv`, `Rückblick`, `Bisherige Stücke`, `Unsere Stücke`,
+  `Aufführungen` or `Historie`, and anniversary brochures (Festschrift) as PDFs.
+  If the current site only shows recent seasons, check older snapshots of the
+  site on the Wayback Machine (`web.archive.org/web/*/<domain>*`) for earlier
+  seasons. Fill gaps from the German Wikipedia article, press reviews,
+  umbrella-association and festival pages, and the group's social media. Merge
+  the sources into one list, sorted by year, and keep track of which source
+  covers which rows. If the history stays incomplete after a reasonable search
+  (missing years, productions without title or author), keep what you found and
+  note the gaps; never fill them by guessing.
+- **Note problems as you go** for the feedback report (Step 4): sources that
+  contradict each other or the Wikidata item, pages that fail to load, and
+  claims you could only source from the group itself.
 - **Record the URL, title, and site of every source you will cite.** You need
   these for the `<ref>` tags. Capture them as you go rather than reconstructing
   them later.
@@ -116,6 +133,12 @@ Treat the group's own website as a primary source: fine for plain facts
 (founding year, repertoire, venue), but attribute or omit anything evaluative or
 promotional. Do not inflate a thin evidence base — it is better to write three
 well-sourced sentences than a page of unverifiable filler.
+
+**If nothing turns up besides the Wikidata item** (no website, no Wikipedia
+article, no press, no association or festival page, no social media), write a
+**Wikidata-only stub**: a short lead built from the item's statements, cited to
+the item itself, and marked with `{{Stub}}`. Don't pad it with general text about
+the town or the genre. See "Wikidata-only stubs" in `references/article-format.md`.
 
 ## Step 3 — Write the article
 
@@ -127,6 +150,10 @@ rules, the citation style, and a full worked example. The essentials:
    {{AIGenerated}}
    {{DynamicInfobox|qid=Q1747746}}
    ```
+   When the only source is the Wikidata item, add `{{Stub}}` between them
+   (`{{AIGenerated}}`, `{{Stub}}`, `{{DynamicInfobox|…}}`). It shows a notice
+   asking readers to contribute and adds the page to `Category:Stub`. Don't use
+   it when any other source was found, however thin.
    Use the *input* QID in the infobox — double-check it matches. `{{AIGenerated}}`
    flags the page for human review, which is exactly why every non-obvious claim
    below it needs a citation.
@@ -140,8 +167,12 @@ rules, the citation style, and a full worked example. The essentials:
    for the narrative, and spend the body on context the infobox can't show.
    In the **Repertoire** section, when the sources list about five or more dated
    productions, present them as a `wikitable sortable` (Year / Title / Author /
-   Notes) below a short prose summary, cited once in the table caption. Keep a
-   few productions, or ones without dates, as prose. See the reference file.
+   Notes) below a short prose summary. Include **every production you found**,
+   not a selection; caption it "Productions" when the list is complete and
+   "Productions (incomplete)" when it has known gaps. Cite it once in the caption
+   when one source covers all rows, otherwise per row for the rows from other
+   sources. Keep a few productions, or ones without dates, as prose. See the
+   reference file.
 4. **Link routing** — this is the rule the user cares about most:
    - generic, general-knowledge topics → **interwiki link to English Wikipedia**
      using the `wikipedia:` prefix, e.g.
@@ -193,6 +224,8 @@ rules, the citation style, and a full worked example. The essentials:
 Before handing it over, verify:
 - [ ] `{{AIGenerated}}` present, and `{{DynamicInfobox|qid=...}}` carries the
       **input** QID.
+- [ ] `{{Stub}}` follows `{{AIGenerated}}` if, and only if, the Wikidata item
+      is the article's only source.
 - [ ] Lead sentence bolds the group's native name and says what/where it is.
 - [ ] Every non-obvious factual claim is covered by a `<ref>`, and the same ref
       isn't repeated sentence after sentence where one paragraph-end citation
@@ -207,14 +240,20 @@ Before handing it over, verify:
 - [ ] Generic terms use `wikipedia:` interwiki links **whose target pages were
       confirmed to exist on English Wikipedia**; amateur-theatre-scene terms use
       local links; nothing is over-linked.
-- [ ] If the group has a German Wikipedia article, the page ends with
-      `{{Wikipedia article|<title>}}` after the references.
+- [ ] No `{{Wikipedia article}}` template: the infobox links Wikipedia from
+      Wikidata.
 - [ ] Every award found in research is in the `Awards` section with its exact
       name, year, awarding body and a ref; nominations aren't presented as wins.
+- [ ] The Repertoire table lists every production found in research (not a
+      selection), each row is covered by a ref, and the caption says whether the
+      list is complete or incomplete.
 - [ ] Tone is neutral and verifiable — no promotional language, no invented facts.
+- [ ] The feedback report `<base>.report.md` sits next to the article and lists
+      every conflict, error and weak source you noticed while writing.
 
 When file tools are available, save the wikitext to a `.wiki` file in the
-outputs directory and present it, so the user can copy it straight into the wiki.
+outputs directory (with the feedback report next to it, see below) and present
+it, so the user can copy it straight into the wiki.
 Otherwise return it in a single fenced code block. The Amateur Theatre Wiki is
 **English-language**, so write the prose and section headings in English by
 default, while keeping every proper name in its native form (e.g.
@@ -222,6 +261,36 @@ default, while keeping every proper name in its native form (e.g.
 the wiki's existing page titles exactly — including the legal form, as in
 `[[Amateurtheaterverband Niedersachsen e. V.]]`; a target that doesn't exist yet
 is a normal redlink, not a problem.
+
+### Write the feedback report
+
+After the article, write a feedback report as a Markdown file **in the same
+folder**, with the article's base name plus `.report.md`
+(`Kellertheater_Hamburg.wiki` → `Kellertheater_Hamburg.report.md`). It is for the
+human reviewer who checks the `{{AIGenerated}}` page, so be specific: name the
+claim, the sources involved and their URLs, and what you would check. Read
+`references/report-format.md` for the template. It covers:
+
+- **Data conflicts**: facts on which sources disagree (founding year, names,
+  production years, member counts), and facts where the Wikidata item disagrees
+  with the sources. Say which version the article uses and why.
+- **Possible errors on Wikidata**: statements that look wrong or outdated
+  (wrong P31, wrong town, a dead official website, a merged or duplicate item).
+  Report them; don't fix them here.
+- **Errors and problems in the research**: pages that failed to load, dead or
+  redirected links, a source you could only read partly, a `wikipedia:` link
+  you dropped because the target doesn't exist.
+- **Weak or missing sources**: claims that rest only on the group's own site or
+  social media, sections or facts you dropped because no source supported them,
+  and gaps such as missing repertoire years or an undated member count.
+- **Leads for further research**: sources you found but could not access
+  (print articles, Festschrift, paywalled press), and who might hold them. For a
+  Wikidata-only stub, list the searches you ran, so the next person doesn't
+  repeat them.
+
+Keep each point to a line or two. Write "None found." under a heading rather
+than dropping it, so the reviewer sees it was checked. The report is not
+uploaded: `upload_articles.py` only picks up `.wiki` files.
 
 ### Recommend the next steps (do not run them)
 
@@ -239,7 +308,8 @@ Do **not** start Step 5 on your own after writing the article; wait for the user
 
 ## Step 5 — Wikidata enrichment via QuickStatements (on request only)
 
-Read `references/quickstatements.md` first. Do not start a new research round.
+Read `references/quickstatements.md` first. Do not start a new research round,
+except for awards that need a new Wikidata item (point 4).
 Work from the finished `.wiki` article (re-read it, in case the archive script has
 updated it), anything already gathered earlier in the conversation with a recorded
 source URL, and one `get_statements` call for the item.
@@ -257,9 +327,7 @@ source URL, and one `get_statements` call for the item.
    Websites and social-media profiles count as part of the article because
    `{{DynamicInfobox}}` displays them; if they aren't in the research context, one
    fetch of the official homepage to read its profile links is allowed. Skip
-   anything already on the item, and never add person-valued statements. An
-   award becomes a `P166` statement only if the award itself has a Wikidata item;
-   list awards without one for the user instead of creating items.
+   anything already on the item, and never add person-valued statements.
 2. **Reference the non-trivial statements** (dates, locations, addresses, names,
    awards) from the ref the article attaches to that fact: `S854` reference URL + `S813`
    retrieved, plus **`S1065` archive URL and `S2960` archive date when the ref has
@@ -270,6 +338,25 @@ source URL, and one `get_statements` call for the item.
    `https://qs-dev.toolforge.org/batch/new?v1=`, save the commands to a `.qs` file
    beside the article, and show the user both. The link opens a draft the user
    reviews and runs while logged in; nothing is saved automatically.
+4. **Awards without a Wikidata item.** An award becomes a `P166` statement only
+   if the award has an item. When it has none (checked with `search_items` on
+   the native and the English name), decide whether it deserves one: it must be
+   an **official, concrete prize**, with a fixed name, an identifiable awarding
+   body, and evidence that it is awarded as such (a winners list, a statute, press
+   about the award itself). Generic or one-off honours (a certificate of thanks,
+   "Sonderapplaus", a festival invitation, an unnamed jury mention) don't
+   qualify. For each qualifying award, research the award itself (this is the one
+   new research round allowed in Step 5), then write a separate creation batch,
+   `<base>.award-items.qs`, with the typical award statements listed in
+   `references/quickstatements.md`, and put the pending `P166` lines for the
+   group, with a placeholder for the new award's QID, in the report. Never
+   create items for the awarding body or for people.
+5. **Write the QuickStatements report** next to the article as
+   `<base>.qs-report.md` (template in `references/quickstatements.md`): what the
+   batch adds, what was skipped and why, conflicts between the item and the
+   article, the award items proposed for creation (and awards rejected as not
+   concrete enough), possible errors on the item that need a manual fix, and
+   facts outside the default set.
 
 If the article holds a useful fact of a type outside the default set (e.g.
 described at URL `P973`, a member organisation `P463`), propose it and ask whether

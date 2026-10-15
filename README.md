@@ -12,7 +12,7 @@ as a QuickStatements batch. See [SKILL.md](SKILL.md) for the full instructions.
 | `references/` | Reference docs the skill loads on demand |
 | `amateur-theatre-article.skill` | Packaged skill, ready to upload |
 | `theaterlist.csv` | List of theatre groups on Wikidata (not part of the skill) |
-| `articles/` | Generated articles (`.wiki`), ready to paste into the wiki |
+| `articles/` | Generated articles (`.wiki`), ready to paste into the wiki, with their feedback reports (`.report.md`) and, after the Wikidata step, QuickStatements batches (`.qs`, `.award-items.qs`) and reports (`.qs-report.md`) |
 | `archive_refs.py` | Post-processing: adds Internet Archive snapshots to references |
 | `upload_articles.py` | Uploads the articles to the wiki |
 
@@ -95,8 +95,7 @@ python3 upload_articles.py other-folder/ --summary "New article"
 ```
 
 Pages that already exist are skipped unless you pass `--overwrite`. Run
-`archive_refs.py` first, so the uploaded references include archive links. Create
-`Template:Wikipedia article` from `templates/` too, or it will show as a red link.
+`archive_refs.py` first, so the uploaded references include archive links.
 
 ## Requirements
 
