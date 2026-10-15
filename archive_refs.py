@@ -58,6 +58,8 @@ def is_wikimedia(url):
 
 
 def http_get(url, timeout=120):
+    # Percent-encode non-ASCII characters (e.g. /über-uns/); http.client only sends ASCII.
+    url = urllib.parse.quote(url, safe=":/?#[]@!$&'()*+,;=%~")
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     return urllib.request.urlopen(req, timeout=timeout)
 
