@@ -22,6 +22,9 @@ lead sentences: what it does, when founded, notable for what.>
 == Organisation ==
 <Legal form (e.V.), membership in associations, festival participation.>
 
+== Awards ==       <!-- only if the group has received documented awards or prizes -->
+<Each prize: exact name, year, awarding body, honoured production, ref.>
+
 == References ==
 <references />
 
@@ -54,6 +57,28 @@ Notes on the skeleton:
   search of the wiki when in doubt; a not-yet-written target shows as a redlink,
   which is fine and even useful for surfacing wanted pages.
 - Categories: Don't add categories
+
+### Awards section
+
+List **every award or prize** the research found, in an `== Awards ==` section
+after `Organisation`. Awards are among the facts readers and the Wikidata step
+look for, so don't bury them in the history prose or a table note.
+
+- For each award give the **exact award name** (native form, in italics only if
+  it is a title), the **year**, the **awarding body**, the **production** it was
+  for, and any category or place ("first prize", "audience award"). Cite each
+  one; a winners list from the awarding body is the best source.
+- One or two awards: a sentence or two of prose. Three or more: a bulleted list
+  sorted by year, oldest first, e.g.
+  `* 2018: ''Amateurtheaterpreis'' of the [[Verband Bayerischer Amateurtheater e. V.]] for ''Der zerbrochne Krug''.<ref name="vbat2018" />`
+- Link the awarding body by the usual routing rules (an umbrella association is
+  usually local; a state government or broadcaster goes to English Wikipedia if
+  the article exists). Link the award itself only if it has its own article.
+- Nominations, shortlists and festival invitations are not awards: say
+  "nominated for" / "invited to", or put them under `Organisation`.
+- Keep it neutral: state the prize, don't add "prestigious" or "highly coveted".
+- A production that won a prize may also carry it in the Repertoire table's
+  Notes column, but the Awards section is the complete record.
 
 ### Production tables in the Repertoire section
 

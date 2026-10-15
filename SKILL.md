@@ -9,8 +9,8 @@ description: >-
   Reads the Wikidata item, researches the group online, and outputs MediaWiki
   markup with {{DynamicInfobox|qid=...}} and {{AIGenerated}}, enwiki interwiki
   links for generic topics, and local links for amateur-theatre topics. Can also
-  propose referenced Wikidata statements (inception, aliases, social media) as a
-  QuickStatements V1 batch URL. Trigger even when templates are not named. Do
+  propose referenced Wikidata statements (inception, awards, aliases, social
+  media) as a QuickStatements V1 batch URL. Trigger even when templates are not named. Do
   NOT use for general Wikidata reconciliation or authority-file lookups
   (normdata-search) or the Baroque ceiling-painting corpus (deckenmalerei-lab).
 ---
@@ -99,6 +99,15 @@ membership, or press coverage.
   the press, an announcement on its own site, or an umbrella association listing it
   as dissolved. A dead website or a long gap in productions alone is not evidence of
   dissolution; mention it in the article only if a source says so.
+- **Look explicitly for awards and prizes the group received** (`Preis`,
+  `Auszeichnung`, `Kulturpreis`, festival prizes, amateur-theatre awards such as
+  those of umbrella associations or regional culture prizes). For each one, note
+  the **exact award name**, the **year**, the **awarding body**, the **production**
+  it was given for (if any), any **category or rank** (1st prize, audience award),
+  and the source. Press reports, the group's chronicle, the awarding body's list of
+  winners, and festival pages are typical sources; prefer the awarding body's own
+  list when you can find it. Nominations and shortlists are not awards; mention
+  them only as such.
 - **Record the URL, title, and site of every source you will cite.** You need
   these for the `<ref>` tags. Capture them as you go rather than reconstructing
   them later.
@@ -124,6 +133,9 @@ rules, the citation style, and a full worked example. The essentials:
 2. Write in a **neutral, encyclopedic, research register**: third person, no
    promotional adjectives, evaluative claims attributed to a source. Only state
    what the sources support; never invent dates, member counts, or award names.
+   **Awards the group received** go in their own `== Awards ==` section (prose
+   for one or two, a short list for more), each with year, awarding body, the
+   production it honoured, and a ref. See the reference file.
 3. Don't restate the whole infobox in prose. Mention the key facts a reader needs
    for the narrative, and spend the body on context the infobox can't show.
    In the **Repertoire** section, when the sources list about five or more dated
@@ -197,6 +209,8 @@ Before handing it over, verify:
       local links; nothing is over-linked.
 - [ ] If the group has a German Wikipedia article, the page ends with
       `{{Wikipedia article|<title>}}` after the references.
+- [ ] Every award found in research is in the `Awards` section with its exact
+      name, year, awarding body and a ref; nominations aren't presented as wins.
 - [ ] Tone is neutral and verifiable — no promotional language, no invented facts.
 
 When file tools are available, save the wikitext to a `.wiki` file in the
@@ -234,16 +248,20 @@ source URL, and one `get_statements` call for the item.
    headquarters town (`P159`) and a registered-seat street address (`P6375`
    qualifier on `P159`), official name (`P1448`), **member counts** (`P2124`, one
    statement per dated count, each with a `P585` point-in-time qualifier),
-   **dissolution** (`P576`, only with explicit evidence), aliases, **every official website
+   **dissolution** (`P576`, only with explicit evidence), **awards received**
+   (`P166`, one statement per award and year, with `P585` and, where the item
+   exists, `P1027` conferred by and `P1686` for work), aliases, **every official website
    found** (`P856`, including a new domain or an extra site), and social-media
    profiles. Facts may be stated in the article or **directly implied** by it (e.g.
    a founding year from "1900" in the name plus a cited 125th anniversary in 2025).
    Websites and social-media profiles count as part of the article because
    `{{DynamicInfobox}}` displays them; if they aren't in the research context, one
    fetch of the official homepage to read its profile links is allowed. Skip
-   anything already on the item, and never add person-valued statements.
-2. **Reference the non-trivial statements** (dates, locations, addresses, names)
-   from the ref the article attaches to that fact: `S854` reference URL + `S813`
+   anything already on the item, and never add person-valued statements. An
+   award becomes a `P166` statement only if the award itself has a Wikidata item;
+   list awards without one for the user instead of creating items.
+2. **Reference the non-trivial statements** (dates, locations, addresses, names,
+   awards) from the ref the article attaches to that fact: `S854` reference URL + `S813`
    retrieved, plus **`S1065` archive URL and `S2960` archive date when the ref has
    an archive.org link**. Facts sourced from Wikipedia or another Wikimedia project
    get only `S143` (imported from Wikimedia project), with no URL or dates.

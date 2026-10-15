@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Upload the .wiki files in a folder to the Amateur Theatre Wiki.
 
 The page title is the file name without `.wiki`, with underscores as spaces
@@ -22,7 +21,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-API = "https://amateur-theatre-wiki.gwi.uni-muenchen.de/api.php"
+API = "https://www.amateur-theatre-wiki.gwi.uni-muenchen.de/api.php"
 opener = urllib.request.build_opener(
     urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar())
 )
@@ -51,7 +50,7 @@ def login(user, password):
         action="clientlogin",
         username=user,
         password=password,
-        loginreturnurl="https://amateur-theatre-wiki.gwi.uni-muenchen.de/",
+        loginreturnurl="https://www.amateur-theatre-wiki.gwi.uni-muenchen.de/",
         logintoken=token("login"),
     )
     status = r.get("clientlogin", {}).get("status")

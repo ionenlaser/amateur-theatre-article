@@ -48,6 +48,7 @@ context supports it with a recorded source:
 | Official name | `P1448` | monolingual (`de:"… e. V."`) | **yes** |
 | Member count | `P2124` + qualifier `P585` (point in time) | quantity | **yes** |
 | Dissolved | `P576` | time (or `somevalue`) | **yes** |
+| Award received | `P166` + qualifiers `P585`, `P1027`, `P1686`, `P14360` | item | **yes** |
 | Alternative / former names | `Ade` / `Aen` | alias | no (cannot be referenced) |
 | Official website(s) | `P856` | string (URL) | no |
 | Facebook / Instagram / X | `P2013` / `P2003` / `P2002` | string (handle) | no |
@@ -88,6 +89,21 @@ Rules:
   no recent productions, no social-media posts) is **not** evidence; mention it
   to the user instead of writing a statement. Never set `P576` from the absence of
   information.
+- **Awards**: add one `P166` statement **per award and year** found in the
+  article's `Awards` section (or the research context, with a recorded source).
+  The value is the award's own item (e.g. a specific prize, not the generic
+  "award" class), resolved with `search_items` on the exact award name and
+  checked with `get_statements` that it really is that prize (its `P31` is an
+  award/prize, and its conferring body matches). **If the award has no item, do
+  not create one and do not substitute a broader item**: list it for the user
+  as "no Wikidata item yet" instead. Qualifiers, all on the same line:
+  - `P585` point in time: the year (`/9`) or exact date the prize was awarded.
+    Always include it: it keeps repeated wins of the same prize as separate
+    statements.
+  - `P14360` award category or rank: only when the prize has categories or
+    places (1st prize, audience award) **and** the category has an item.
+  Nominations are `P1411` (nominated for), not `P166`; add them only if the
+  user asks.
 - Item values (such as a town for `P159`) must be resolved to a QID. Use the value
   the item already shows in `get_statements` where possible; otherwise one
   `search_items` call. Never guess a QID.
@@ -190,6 +206,16 @@ Q123456789	P576	+2019-00-00T00:00:00Z/9	S854	"<register notice or press URL>"	S8
 Q123456789	P576	somevalue	S854	"<source URL>"	S813	+2026-10-14T00:00:00Z/11
 ```
 
+Two awards: a prize won twice (each year its own statement) and one with the
+awarding body and the honoured production as qualifiers. Placeholder QIDs stand
+for items resolved with `search_items`; never guess them:
+
+```
+Q123456789	P166	Q<award>	P585	+2012-00-00T00:00:00Z/9	S854	"<winners list URL>"	S813	+2026-10-14T00:00:00Z/11
+Q123456789	P166	Q<award>	P585	+2018-00-00T00:00:00Z/9	S854	"<winners list URL>"	S813	+2026-10-14T00:00:00Z/11
+Q123456789	P166	Q<other award>	P585	+2022-00-00T00:00:00Z/9	P1027	Q<awarding body>	P1686	Q<production or play>	S854	"<press URL>"	S813	+2026-10-14T00:00:00Z/11	S1065	"<archive URL>"	S2960	+2026-10-14T00:00:00Z/11
+```
+
 An alias and a Facebook profile, both unreferenced:
 
 ```
@@ -215,6 +241,9 @@ Write the command block to a `.qs` file next to the article (same base name), an
 show the user both the readable commands and the batch URL. The URL opens a draft
 in QuickStatements: the user must be logged in, reviews it, and runs it themselves.
 Nothing is saved automatically.
+
+Below the URL, list any award from the article that was **not** added because
+it has no Wikidata item, so the user can decide whether to create one.
 
 If the article holds a useful fact outside the table above (for example
 described at URL `P973` or a member organisation `P463`), propose it and ask the
