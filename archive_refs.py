@@ -20,6 +20,16 @@ Refs and reference blocks that already have an archive link are left alone, so t
 script can be re-run safely. If a capture fails, the most recent existing snapshot
 is used regardless of age; if there is none, the ref is left unchanged and reported.
 
+All Wayback requests are paced; on HTTP 429 (Too Many Requests) the script waits
+(Retry-After, or exponential backoff), doubles the pause between requests and slowly
+speeds up again after successful calls.
+
+Captures are anonymous by default. With archive.org S3 keys
+(https://archive.org/account/s3.php) in IA_ACCESS_KEY and IA_SECRET_KEY, the
+authenticated Save Page Now 2 API is used instead, which has much higher limits:
+
+    IA_ACCESS_KEY=... IA_SECRET_KEY=... python3 archive_refs.py
+
 Usage:
     python3 archive_refs.py [--dry-run] [PATH ...]   # PATH: .wiki files or folders (default: articles)
 """
@@ -27,6 +37,7 @@ Usage:
 import argparse
 import datetime as dt
 import json
+import os
 import re
 import sys
 import time
@@ -58,7 +69,11 @@ QS_URL_RE = re.compile(r'\tS854\t"([^"]+)"')
 QS_BLOCK_RE = re.compile(r"(?=\t!S\d)")  # a second reference block starts with !S
 QS_BASE_URL = "https://qs-dev.toolforge.org/batch/new?v1="
 QS_SUFFIXES = (".award-items.qs", ".pending.qs", ".qs")
-SAVE_DELAY = 6  # seconds between captures; anonymous Save Page Now is rate-limited
+REQUEST_DELAY = 6  # minimum seconds between Wayback requests
+MAX_DELAY = 120  # upper bound for the pause after repeated 429s
+MAX_BACKOFF = 600  # upper bound for a single wait before retrying
+RETRY_CODES = (429, 500, 502, 503, 504, 520, 523)
+IA_KEYS = (os.environ.get("IA_ACCESS_KEY"), os.environ.get("IA_SECRET_KEY"))
 MAX_SNAPSHOT_AGE = timedelta(days=183)  # reuse snapshots up to six months old
 
 
@@ -71,35 +86,104 @@ def is_wikimedia(url):
     return any(host == d or host.endswith("." + d) for d in WIKIMEDIA_DOMAINS)
 
 
-def http_get(url, timeout=120):
+pace = REQUEST_DELAY  # current pause between requests; grows on 429
+last_request = 0.0
+
+
+def http_open(url, data=None, headers=None, timeout=120):
     # Percent-encode non-ASCII characters (e.g. /über-uns/); http.client only sends ASCII.
     url = urllib.parse.quote(url, safe=":/?#[]@!$&'()*+,;=%~")
-    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    headers = {"User-Agent": USER_AGENT, **(headers or {})}
+    req = urllib.request.Request(url, data=data, headers=headers)
     return urllib.request.urlopen(req, timeout=timeout)
 
 
-def save_page_now(url, retries=3):
-    """Capture url and return the snapshot URL, or None."""
-    for attempt in range(retries):
+def retry_after(error):
+    try:
+        return int(error.headers.get("Retry-After", ""))
+    except ValueError:
+        return None
+
+
+def request(url, data=None, headers=None, timeout=120, tries=5):
+    """Paced http_open that waits and retries on 429, 5xx and network errors."""
+    global pace, last_request
+    for attempt in range(tries):
+        time.sleep(max(0, last_request + pace - time.monotonic()))
+        last_request = time.monotonic()
         try:
-            with http_get("https://web.archive.org/save/" + url) as resp:
-                for candidate in (
-                    resp.headers.get("Content-Location", ""),
-                    resp.geturl(),
-                ):
-                    if SNAPSHOT_RE.search(candidate):
-                        return urllib.parse.urljoin(
-                            "https://web.archive.org", candidate
-                        )
+            resp = http_open(url, data, headers, timeout)
+            pace = max(REQUEST_DELAY, pace * 0.9)  # recover slowly after a slowdown
+            return resp
         except urllib.error.HTTPError as e:
-            print(
-                f"    save attempt {attempt + 1} failed: HTTP {e.code}", file=sys.stderr
-            )
-            if e.code not in (429, 500, 502, 503, 504, 520, 523):
-                break
+            if e.code not in RETRY_CODES or attempt == tries - 1:
+                raise
+            if e.code == 429:
+                pace = min(pace * 2, MAX_DELAY)
+            wait = retry_after(e) or min(30 * 2**attempt, MAX_BACKOFF)
+            reason = f"HTTP {e.code}"
         except (urllib.error.URLError, TimeoutError) as e:
-            print(f"    save attempt {attempt + 1} failed: {e}", file=sys.stderr)
-        time.sleep(SAVE_DELAY * (attempt + 2))
+            if attempt == tries - 1:
+                raise
+            wait = min(30 * 2**attempt, MAX_BACKOFF)
+            reason = str(e)
+        print(
+            f"    {reason}; waiting {wait} s (attempt {attempt + 1}/{tries}, "
+            f"pause now {pace:.0f} s)",
+            file=sys.stderr,
+        )
+        time.sleep(wait)
+
+
+def save_page_now(url):
+    """Capture url and return the snapshot URL, or None."""
+    if all(IA_KEYS):
+        return save_page_now_authenticated(url)
+    try:
+        with request("https://web.archive.org/save/" + url) as resp:
+            for candidate in (
+                resp.headers.get("Content-Location", ""),
+                resp.geturl(),
+            ):
+                if SNAPSHOT_RE.search(candidate):
+                    return urllib.parse.urljoin("https://web.archive.org", candidate)
+    except (urllib.error.URLError, TimeoutError) as e:
+        print(f"    capture failed: {e}", file=sys.stderr)
+    return None
+
+
+def save_page_now_authenticated(url, poll=5, max_wait=300):
+    """Capture url via the Save Page Now 2 API and return the snapshot URL, or None."""
+    headers = {
+        "Accept": "application/json",
+        "Authorization": "LOW {}:{}".format(*IA_KEYS),
+    }
+    try:
+        data = urllib.parse.urlencode({"url": url}).encode()
+        with request("https://web.archive.org/save", data, headers) as resp:
+            job = json.load(resp)
+        if "job_id" not in job:
+            print(f"    capture refused: {job.get('message', job)}", file=sys.stderr)
+            return None
+        status_url = "https://web.archive.org/save/status/" + job["job_id"]
+        for _ in range(max_wait // poll):
+            time.sleep(poll)
+            with request(status_url, headers=headers) as resp:
+                status = json.load(resp)
+            if status.get("status") == "success":
+                return (
+                    f"https://web.archive.org/web/{status['timestamp']}/"
+                    f"{status['original_url']}"
+                )
+            if status.get("status") != "pending":
+                print(
+                    f"    capture failed: {status.get('message', status)}",
+                    file=sys.stderr,
+                )
+                return None
+        print(f"    capture still pending after {max_wait} s", file=sys.stderr)
+    except (urllib.error.URLError, TimeoutError, ValueError, KeyError) as e:
+        print(f"    capture failed: {e}", file=sys.stderr)
     return None
 
 
@@ -110,7 +194,7 @@ def latest_snapshot(url):
             {"url": url, "timestamp": utcnow().strftime("%Y%m%d%H%M%S")}
         )
         api = "https://archive.org/wayback/available?" + query
-        with http_get(api, timeout=60) as resp:
+        with request(api, timeout=60) as resp:
             closest = json.load(resp).get("archived_snapshots", {}).get("closest", {})
         if closest.get("available") and str(closest.get("status", "200")).startswith(
             ("2", "3")
@@ -151,7 +235,6 @@ def archive(url, cache, dry_run):
                     print("    capture failed; using existing snapshot")
                     snap = existing
                 cache[url] = snap
-                time.sleep(SAVE_DELAY)
     return cache[url]
 
 
