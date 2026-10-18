@@ -124,7 +124,10 @@ def latest_snapshot(url):
 
 
 def snapshot_time(snapshot_url):
-    return datetime.strptime(SNAPSHOT_RE.search(snapshot_url).group(1), "%Y%m%d%H%M%S")
+    m = SNAPSHOT_RE.search(snapshot_url)
+    if not m:
+        raise ValueError(f"not a Wayback snapshot URL: {snapshot_url}")
+    return datetime.strptime(m.group(1), "%Y%m%d%H%M%S")
 
 
 def snapshot_date(snapshot_url):
@@ -282,11 +285,14 @@ def update_report(folder, base):
             )
     section = "## Batches\n" + "\n".join(out) + "\n\n" if out else ""
     text = report.read_text(encoding="utf-8")
-    if re.search(r"^## Batches\n", text, re.M):
+    if re.search(r"^## Batches\n", text, re.MULTILINE):
         new_text = re.sub(
-            r"^## Batches\n.*?(?=^## |\Z)", section, text, flags=re.M | re.S
+            r"^## Batches\n.*?(?=^## |\Z)",
+            section,
+            text,
+            flags=re.MULTILINE | re.DOTALL,
         )
-    elif m := re.search(r"^## ", text, re.M):
+    elif m := re.search(r"^## ", text, re.MULTILINE):
         new_text = text[: m.start()] + section + text[m.start() :]
     else:
         new_text = text.rstrip("\n") + "\n\n" + section
@@ -321,8 +327,10 @@ def rebuild_batches(folder):
     if not (main or awards or pending or reports):
         return
     out = [
-        f"# QuickStatements report: all groups\n\nGenerated {dt.date.today()} "
-        f"from {len(reports)} group reports.\n\n## Batches"
+        (
+            f"# QuickStatements report: all groups\n\nGenerated {dt.date.today()} "
+            f"from {len(reports)} group reports.\n\n## Batches"
+        )
     ]
     if main:
         n, url = write_batch(folder, "000_all.qs", main)
@@ -348,7 +356,7 @@ def rebuild_batches(folder):
         )
     for p in reports:
         text = p.read_text(encoding="utf-8").strip()
-        out.append("\n" + re.sub(r"^(#+) ", r"#\1 ", text, flags=re.M))
+        out.append("\n" + re.sub(r"^(#+) ", r"#\1 ", text, flags=re.MULTILINE))
     (folder / "000_all.qs-report.md").write_text(
         "\n".join(out) + "\n", encoding="utf-8"
     )
