@@ -9,7 +9,7 @@ statements as a QuickStatements batch in the same run. See [SKILL.md](SKILL.md) 
 | Path | Purpose |
 | --- | --- |
 | `SKILL.md` | Skill definition (frontmatter + instructions) |
-| `references/` | Reference docs the skill loads on demand |
+| `references/` | Reference docs the skill loads on demand (`award-items.md` only when an award needs a new item) |
 | `amateur-theatre-article.skill` | Packaged skill, ready to upload |
 | `theaterlist.csv` | List of theatre groups on Wikidata (not part of the skill) |
 | `articles/` | Generated articles (`.wiki`), ready to paste into the wiki, with their feedback reports (`.report.md`), QuickStatements batches (`.qs`, `.award-items.qs`, `.pending.qs`) and reports (`.qs-report.md`), and the folder-wide `000_all.*` batch files |

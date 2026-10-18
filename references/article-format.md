@@ -1,4 +1,4 @@
-# Article format, links, citations, and a worked example
+# Article format
 
 ## Skeleton
 
@@ -6,91 +6,46 @@
 {{AIGenerated}}
 {{DynamicInfobox|qid=Q#######}}
 
-'''<Native name>''' is a <type> amateur theatre group based in
-[[wikipedia:<Town>|<Town>]], <region>, Germany.<ref name="site">[<official URL> <page title>], <Group> e.V., retrieved <date>.</ref> <One or two more
-lead sentences: what it does, when founded, notable for what.>
+'''<Native name>''' is a <type> amateur theatre group based in [[wikipedia:<Town>|<Town>]], <region>, Germany.<ref name="site" /> <One or two more sentences: what it does, when founded.>
 
 == History ==
-<Founding, milestones, continuity. Cite each non-obvious fact.>
-
 == Repertoire ==
-<Kind of theatre, languages performed, recurring genres, notable productions.>
-
-== Venue ==        <!-- only if the group has a named, documented playing space -->
-<Where it performs.>
-
-== Organisation ==
-<Legal form (e.V.), membership in associations, festival participation.>
-
-== Awards ==       <!-- only if the group has received documented awards or prizes -->
-<Each prize: exact name, year, awarding body, honoured production, ref.>
+== Venue ==          <!-- only with a named, documented playing space -->
+== Organisation ==   <!-- legal form, associations, festivals -->
+== Awards ==         <!-- only with documented awards -->
 
 == References ==
-<references />
+<references>
+<ref name="site">[<URL> <page title>], <site>, retrieved <date>.</ref>
+</references>
 ```
 
-Notes on the skeleton:
+- Headings in English; proper names native.
+- Leave out any section you can't source. Three well-sourced sentences beat padded sections.
+- Never add: a hand-written infobox or a list of infobox fields, `{{Wikipedia article}}`
+  (the infobox links Wikipedia), an `External links` section (the infobox shows
+  websites and social media), categories.
+- Mention infobox facts only where the prose needs them.
 
-- **No Wikipedia note template.** `{{DynamicInfobox}}` links the group's
-  Wikipedia articles from the Wikidata sitelinks, so don't add
-  `{{Wikipedia article}}` or a similar note at the end of the page.
+## Section rules
 
-- The Amateur Theatre Wiki is English-language, so headings are in English by
-  default (`History`, `Repertoire`, `Venue`, `Organisation`, `References`). Keep
-  proper names native in either case.
-- **No `External links` section.** `{{DynamicInfobox}}` already shows the official
-  website and social-media profiles from Wikidata, so don't repeat them in a
-  link list. A URL that matters as a source belongs in a `<ref>`.
-- **`{{Stub}}`** goes right after `{{AIGenerated}}` when the Wikidata item is the
-  only source (see "Wikidata-only stubs" below). The template adds
-  `Category:Stub` itself, so the "no categories" rule still holds for the article.
-- Drop any section you cannot source. A short, fully-referenced stub is a better
-  outcome than padded sections. Three solid sentences under a single lead can be
-  enough for a small group.
-- Do not add a hand-written infobox or repeat the infobox's structured fields as
-  a list — `{{DynamicInfobox}}` renders them from Wikidata.
-- For **local** wikilinks, match the wiki's existing page titles exactly,
-  including the legal form: `[[Amateurtheaterverband Niedersachsen e. V.]]`,
-  `[[Bund Deutscher Amateurtheater (BDAT)]]`. Confirm the exact title with a quick
-  search of the wiki when in doubt; a not-yet-written target shows as a redlink,
-  which is fine and even useful for surfacing wanted pages.
-- Categories: Don't add categories
-
-### Awards section
-
-List **every award or prize** the research found, in an `== Awards ==` section
-after `Organisation`. Awards are among the facts readers and the Wikidata step
-look for, so don't bury them in the history prose or a table note.
-
-- For each award give the **exact award name** (native form, in italics only if
-  it is a title), the **year**, the **awarding body**, the **production** it was
-  for, and any category or place ("first prize", "audience award"). Cite each
-  one; a winners list from the awarding body is the best source.
-- One or two awards: a sentence or two of prose. Three or more: a bulleted list
-  sorted by year, oldest first, e.g.
-  `* 2018: ''Amateurtheaterpreis'' of the [[Verband Bayerischer Amateurtheater e. V.]] for ''Der zerbrochne Krug''.<ref name="vbat2018" />`
-- Link the awarding body by the usual routing rules (an umbrella association is
-  usually local; a state government or broadcaster goes to English Wikipedia if
-  the article exists). Link the award itself only if it has its own article.
-- Nominations, shortlists and festival invitations are not awards: say
-  "nominated for" / "invited to", or put them under `Organisation`.
-- Keep it neutral: state the prize, don't add "prestigious" or "highly coveted".
-- A production that won a prize may also carry it in the Repertoire table's
-  Notes column, but the Awards section is the complete record.
-
-### Production tables in the Repertoire section
-
-When the sources list **roughly five or more dated productions**, put them in a
-MediaWiki table under `== Repertoire ==` instead of a long sentence of titles.
-Keep one or two prose sentences above the table for what the list can't show:
-genres, language, how many productions a year, how the repertoire changed.
-With fewer productions, or ones without years, stay with prose.
+**Awards**: one or two awards → prose; three or more → bulleted list, oldest first:
 
 ```mediawiki
-== Repertoire ==
-The group stages one open-air production each summer. Its early seasons were
-devoted to Shakespeare; later productions include modern and contemporary drama.<ref name="dewiki" />
+* 2018: ''Amateurtheaterpreis'' of the [[Verband Bayerischer Amateurtheater e. V.]] for ''Der zerbrochne Krug''.<ref name="vbat2018" />
+```
 
+- Each award: exact name (native), year, awarding body, production, category/rank, ref.
+  The awarding body's winners list is the best source.
+- Link the body by the routing rules; link the award only if it has its own article.
+- Nominations, shortlists, festival invitations: "nominated for" / "invited to", or under Organisation.
+- No "prestigious" and the like. A winning production may also note the prize in
+  the repertoire table, but the Awards section is the full record.
+
+**Repertoire**: one or two prose sentences (genres, language, productions per
+year, changes over time). With about five or more dated productions, add a table:
+
+```mediawiki
 {| class="wikitable sortable"
 |+ Productions<ref name="dewiki" />
 ! Year !! Title !! Author !! Notes
@@ -99,296 +54,132 @@ devoted to Shakespeare; later productions include modern and contemporary drama.
 |-
 | 2006 || ''[[wikipedia:Baal (play)|Baal]]'' || [[wikipedia:Bertolt Brecht|Bertolt Brecht]] ||
 |-
-| 2007 || ''[[wikipedia:The Visit (play)|The Visit]]'' || [[wikipedia:Friedrich Dürrenmatt|Friedrich Dürrenmatt]] ||
+| 2009 || ''Der Brandner Kaspar'' || after Franz von Kobell || <ref name="press1" />
 |}
 ```
 
-Table rules:
+- **Every** production found, oldest first; revivals get their own row ("revival of 1987 production").
+- Caption: `Productions` if complete, `Productions (incomplete)` if there are known
+  gaps (name the missing years in the prose), `Selected productions` only if the
+  sources themselves give only a selection.
+- Columns: Year, Title, Author ("after X" for adaptations), Notes (director, venue,
+  award). Drop a column the sources leave empty.
+- Titles in italics, in the language performed; add the English title only for well-known plays.
+- Ref in the caption for the main source; row refs only for rows from other sources.
+- Fewer than five productions, or undated ones: prose.
+- Never fill gaps with guesses.
 
-- Use `class="wikitable sortable"`, sorted by year, oldest first. Columns:
-  **Year**, **Title**, **Author** (or "after" + author for adaptations), and an
-  optional **Notes** column for director, venue, premiere or award. Drop columns
-  the sources don't fill. An empty Author column for a whole table helps nobody.
-- Titles in italics, in the language the group performed them. Add the English
-  title in brackets only when the play is well known under it.
-- **Cite the table once**, in its caption (`|+ … <ref …/>`), when one source covers
-  every row. Add a ref in a row only for the rows that come from a different source.
-  Don't put the same ref in every row. A complete list merged from several sources
-  (own chronicle, archived old site, press) usually needs a caption ref for the
-  main source plus row refs for the rest.
-- Linking follows the usual rules: link a play or author to English Wikipedia only
-  when that article exists, and link each one once, at first mention in the table.
-- **Aim for completeness.** List every production the sources document, from the
-  first to the most recent, even for a group with decades of productions; a long
-  table is fine. Revivals get their own row with a note ("revival of 1987
-  production"). Caption the table "Productions" when the list is complete and
-  "Productions (incomplete)" when there are known gaps, and say in the prose
-  above it which years are missing. Use "Selected productions" only when the
-  sources themselves offer just a selection. Never pad gaps with guessed titles
-  or years.
+## Links
 
-## Link routing: interwiki vs. local
+Rule: would a general encyclopedia have an article on this?
 
-The deciding question for every link: **would a general-purpose encyclopedia
-have an article on this?**
-
-- **Yes -> interwiki to English Wikipedia**, using the `wikipedia:` prefix:
-  `[[wikipedia:Improvisational theatre|improvisational theatre]]`,
-  `[[wikipedia:Low German|Low German]]`, `[[wikipedia:Puppetry|puppetry]]`,
-  `[[wikipedia:Hanover|Hanover]]`,
+- **Yes → English Wikipedia** via `wikipedia:` (art forms, languages, places, general
+  institutions, well-known plays and authors):
+  `[[wikipedia:Low German|Low German]]`, `[[wikipedia:Hanover|Hanover]]`,
   `[[wikipedia:Voluntary association#Germany|registered association]]`.
-  These are art forms, languages, places, and general institutions.
-- **No, it's specific to the amateur-theatre world this wiki documents -> local
-  wikilink**: other troupes the wiki covers, scene-specific festivals and
-  meetings, and associations the wiki has pages for, e.g.
-  `[[Verband Bayerischer Amateurtheater e. V.]]`,
-  `[[Niedersächsische Amateurtheatertage]]`, or a sister group
-  `[[English Theatre Buxtehude]]`.
+- **No, it belongs to the amateur-theatre scene → local link** (troupes, scene
+  festivals, associations): `[[Niedersächsische Amateurtheatertage]]`. Use the
+  wiki's exact title, legal form included: `[[Amateurtheaterverband Niedersachsen e. V.]]`,
+  `[[Bund Deutscher Amateurtheater (BDAT)]]`. Missing local pages are useful redlinks; no check needed.
+- Link each term once, at first mention. Don't link the obvious ("theatre", "Germany").
 
-`wikipedia:` is this wiki's interwiki prefix for English Wikipedia; use it
-consistently. Link a term **once**, at first mention, and don't link the
-blindingly obvious ("theatre", "Germany"). Over-linking reads as noise and is a
-common review complaint.
+**Check every `wikipedia:` target in one call** before writing the final file
+(titles joined with `|`, up to 50):
 
-**Verify the target exists before you link it.** A `wikipedia:` link must point at
-a real English Wikipedia title; a confident-looking guess is often a dead link.
-`[[wikipedia:Volksstück|Volksstück]]`, for instance, looks reasonable but English
-Wikipedia has no `Volksstück` article (the concept lives only on German Wikipedia).
-Before emitting a `wikipedia:` link, confirm the page exists:
+```text
+https://en.wikipedia.org/w/api.php?action=query&titles=Low_German|Volksstück|Hanover&redirects&prop=pageprops&ppprop=disambiguation&format=json
+```
 
-- A quick `web_search` for the title is usually enough — check that a real
-  `en.wikipedia.org/wiki/<Title>` article for *that* concept comes up, not a
-  German-Wikipedia page, a disambiguation stub, or a redirect to something
-  unrelated.
-- For a definitive check, look the concept up on Wikidata and confirm it has an
-  English-Wikipedia sitelink (e.g. via `execute_sparql`, a row where
-  `?article schema:about wd:Q… ; schema:isPartOf <https://en.wikipedia.org/>`).
-
-If the exact title does not exist, link a broader or synonymous article you *have*
-confirmed (only if it genuinely exists), or simply leave the term as plain text —
-an unlinked word is better than a broken interwiki link. Local wikilinks need no
-such check: a missing local page is a normal redlink, even a useful one for
-surfacing wanted pages.
+- Entry with `"missing"` → don't link it (e.g. `Volksstück` has no English article).
+  Use a confirmed broader or synonymous title, or plain text.
+- Redirect to an unrelated topic, or `disambiguation` in pageprops → choose
+  another title or plain text.
+- Log dropped links as `PROBLEM error`.
 
 ## Citations
 
-Every non-obvious factual claim is covered by a `<ref>`. Reuse a source with a named
-ref rather than repeating it.
-
-### Don't repeat the same ref after every sentence
-
-When consecutive sentences, or a whole paragraph, all come from the same source,
-cite it **once**: after the last sentence it supports, normally at the end of the
-paragraph. A paragraph-wide citation covers every sentence before it back to the
-previous ref. Repeat a ref inside a paragraph only when the sources change:
+Format, always (no `{{cite web}}` / `{{cite news}}`; they don't exist on the wiki):
 
 ```mediawiki
-<!-- avoid -->
-The group was founded in 1954.<ref name="dewiki" /> It moved into the basement in 1966.<ref name="dewiki" /> At first it staged one play a year.<ref name="dewiki" />
-
-<!-- prefer -->
-The group was founded in 1954. It moved into the basement in 1966. At first it staged one play a year.<ref name="dewiki" />
-
-<!-- sources change mid-paragraph: close each run with its own ref -->
-The group was founded in 1954 and moved into the basement in 1966.<ref name="dewiki" /> In 2014 it staged 22 productions.<ref name="press" />
+<ref name="site">[https://example-troupe.de/ Über uns], Theatergruppe Example e. V., retrieved 29 June 2026.</ref>
+<ref name="press1">[https://example-paper.de/article Headline], Example-Zeitung, 20 November 2025, retrieved 29 June 2026.</ref>
 ```
 
-Exceptions: put a ref straight after a sentence holding a contested, surprising or
-quoted claim (a superlative, an award, a figure), even when the same source closes
-the paragraph. A short article that relies on one source can end up with a single
-ref per paragraph, and that's fine.
+- **One pattern only**: every body ref is self-closing `<ref name="x" />`, and every
+  name is defined exactly once inside `<references>…</references>`. (A self-closing
+  name with no definition causes the "has no content" cite error.)
+- Retrieved date = today.
+- **Placement**: when consecutive sentences come from one source, cite it once after
+  the last of them. Add a ref where the source changes, and directly after a
+  contested, surprising or quoted claim (a figure, an award, a superlative).
 
-Use the **basic ref format only** — a bracketed external link plus a short plain
-description. Citation templates such as `{{cite web}}` / `{{cite news}}` are **not
-implemented on the wiki yet**, so do not use them; they would render as visible
-template-call text.
+  ```mediawiki
+  The group was founded in 1954. It moved into the basement in 1966.<ref name="dewiki" /> In 2014 it staged 22 productions.<ref name="press1" />
+  ```
+- Add an independent source next to an own-site source for the same fact; at most
+  two or three refs per sentence; don't cite the same fact in lead and body.
+- Evaluations only attributed and from independent sources ("the regional press
+  described the 2019 production as …").
+
+**Wikimedia sources** (Wikipedia, Wikidata, Commons, …): cite the revision you read.
+Get revids for all titles of one wiki in one call:
+
+```text
+https://de.wikipedia.org/w/api.php?action=query&prop=revisions&rvprop=ids&titles=Kellertheater_Hamburg|Other_Title&format=json
+```
 
 ```mediawiki
-<ref name="site">[https://example-troupe.de/ Über uns], Theatergruppe Example e.V., retrieved 29 June 2026.</ref>
+<ref name="dewiki">[https://de.wikipedia.org/w/index.php?title=Kellertheater_Hamburg&oldid=266247510 Kellertheater Hamburg], German Wikipedia, retrieved 14 October 2026.</ref>
 ```
 
-Reuse: `<ref name="site" />`
+Never `/wiki/<Title>` in a ref (interwiki links keep plain titles).
 
-### Wikidata-only stubs
+**Other MediaWiki sites** (AW-Wiki, Stadtwikis, GenWiki): ordinary websites. Cite the
+plain page URL, never an `oldid` link.
 
-When research finds no source besides the Wikidata item, the article is a stub:
+## Wikidata-only stub
 
-- Put `{{Stub}}` between `{{AIGenerated}}` and `{{DynamicInfobox}}`.
-- Write only a lead of one to three sentences from the item's statements: name,
-  type of group, town, and founding year or other facts the item holds. No
-  section headings except `== References ==`.
-- Cite the item with an `oldid` permalink to the revision you read, like a
-  Wikipedia source (Wikidata is a Wikimedia project). Get the revision id from
-  `https://www.wikidata.org/w/api.php?action=query&prop=revisions&rvprop=ids&titles=<QID>&format=json`.
-- Only use statements that have a value you can state plainly. Don't turn the
-  description or the absence of statements into claims ("is no longer active").
+When the item is the only source:
 
 ```mediawiki
 {{AIGenerated}}
 {{Stub}}
 {{DynamicInfobox|qid=Q123456789}}
 
-'''Theatergruppe Beispieldorf''' is an amateur theatre group in
-[[wikipedia:Beispieldorf|Beispieldorf]], Bavaria, Germany, founded in 1978.<ref name="wikidata">[https://www.wikidata.org/w/index.php?title=Q123456789&oldid=2345678901 Theatergruppe Beispieldorf (Q123456789)], Wikidata, retrieved 15 October 2026.</ref>
+'''Theatergruppe Beispieldorf''' is an amateur theatre group in [[wikipedia:Beispieldorf|Beispieldorf]], Bavaria, Germany, founded in 1978.<ref name="wikidata" />
 
 == References ==
-<references />
+<references>
+<ref name="wikidata">[https://www.wikidata.org/w/index.php?title=Q123456789&oldid=2345678901 Theatergruppe Beispieldorf (Q123456789)], Wikidata, retrieved 15 October 2026.</ref>
+</references>
 ```
 
-Remove `{{Stub}}` as soon as the article cites any other source.
-
-### Wikipedia sources: cite the revision (`oldid`)
-
-When a Wikipedia article (any language) is a source, link the **exact revision you
-read**, not the live page, so reviewers see the text the claim was based on even
-after the article changes. Look up the current revision id:
-
-```text
-https://de.wikipedia.org/w/api.php?action=query&prop=revisions&rvprop=ids&titles=Kellertheater_Hamburg&format=json
--> "revid": 266247510
-```
-
-and cite it as:
-
-```mediawiki
-<ref name="dewiki">[https://de.wikipedia.org/w/index.php?title=Kellertheater_Hamburg&oldid=266247510 Kellertheater Hamburg], German Wikipedia, retrieved 14 October 2026.</ref>
-```
-
-Never use `https://de.wikipedia.org/wiki/<Title>` in a reference. This rule is for
-references only; `[[wikipedia:...]]` interwiki links keep using plain titles.
-
-**Only Wikimedia projects get `oldid` permalinks.** Regional, city or club wikis that
-happen to run MediaWiki (AW-Wiki, Stadtwikis, GenWiki, …) are not Wikimedia
-projects. Cite them like any other website, with the plain page URL as it appears
-in the browser:
-
-```mediawiki
-<ref name="awwiki">[https://www.aw-wiki.de/index.php/Theatergruppe_1983_Westum_e.V. Theatergruppe 1983 Westum e.V.], AW-Wiki, retrieved 14 October 2026.</ref>
-```
-
-An `index.php?…&oldid=…` URL on such a wiki often can't be captured by the
-archive script, and in the QuickStatements step it would wrongly look like a
-Wikimedia source. Those sources get `S854` + `S813` (plus archive pairs) like any
-web page, never `S143`.
-
-### Define each name once, with content; reuse it self-closing
-
-The full citation (bracketed link + description) must appear **exactly once** for
-each ref name. Every other appearance of that name is the self-closing
-`<ref name="site" />`. If a name is *only* ever used self-closing — with no
-definition carrying content anywhere on the page — MediaWiki raises:
-
-> Cite error: `<ref>` tag with name "site" defined in `<references>` group "" has no content.
-
-Two valid patterns; pick one and apply it to every source:
-
-- **Define at first use** — put the content in the body the first time the source
-  is cited, then reuse self-closing, and close with a self-closing `<references />`:
-
-  ```mediawiki
-  ... based in Munich.<ref name="site">[https://example-troupe.de/ Über uns], Theatergruppe Example e.V., retrieved 29 June 2026.</ref>
-  ...
-  == References ==
-  <references />
-  ```
-
-- **Define in the references block** — keep the body refs all self-closing and give
-  every name its content inside a `<references>...</references>` block (note: this
-  block is **not** self-closing):
-
-  ```mediawiki
-  ... based in Munich.<ref name="site" />
-  ...
-  == References ==
-  <references>
-  <ref name="site">[https://example-troupe.de/ Über uns], Theatergruppe Example e.V., retrieved 29 June 2026.</ref>
-  </references>
-  ```
-
-The failure mode to avoid is the mix that leaves a name contentless: a self-closing
-`<ref name="site" />` in the body **and** a self-closing `<references />`, with the
-content defined nowhere.
-
-For a news article, keep the same shape — title, work, date — without a template:
-
-```mediawiki
-<ref name="press">[https://example-paper.de/article Headline of the article], Example-Zeitung, 20 November 2025, retrieved 29 June 2026.</ref>
-```
-
-Guidance:
-
-- Cite every useful source you find. When an independent source (local
-  newspaper, city wiki, association page) confirms a fact already cited to the
-  group's own site or Wikipedia, add it as a second ref on that sentence. Don't
-  go beyond two or three refs on one sentence, and don't re-cite the same fact in
-  lead and body.
-- Prefer independent sources (press, association pages, a linked Wikipedia
-  article's own sources) for anything evaluative; use the group's own site for
-  plain facts and attribute it.
-- Use a real retrieval date (today's date) rather than a placeholder.
-- Close with `<references />` when refs are defined inline at first use, or with a
-  populated `<references>...</references>` block when you collect them there. Either
-  is fine — just be consistent and make sure every name carries its content exactly
-  once, so no name is left contentless (see "Define each name once" above).
-
-## Neutral, research register
-
-`{{AIGenerated}}` tells human reviewers the text was machine-drafted, so the
-single most valuable property of the output is **verifiability**:
-
-- Third person throughout; no "we", no address to the reader.
-- No peacock terms ("renowned", "beloved", "vibrant", "must-see"). State what the
-  group is and does and let facts carry it.
-- Attribute opinions and superlatives to whoever said them
-  ("the regional press described the 2019 production as ...<ref .../>"),
-  never assert them in the wiki's own voice.
-- Only claims you can source. If a date or figure is uncertain, omit it or
-  attribute it — do not guess. A missing fact is recoverable by a human editor;
-  a fabricated one is a defect the `{{AIGenerated}}` flag is meant to catch.
+- One to three sentences from statements with plain values (name, type, town, founding year).
+- `oldid` = `lastrevid` from Step 1.
+- No claims from the description or from missing statements ("no longer active").
+  No filler about the town or the genre.
+- `{{Stub}}` adds `Category:Stub` itself. Never use it once any other source exists.
 
 ## Worked example
-
-Input: `Q#######` resolving to a Low German village stage in Lower Saxony with an
-official website and a short local-press history. After reading the item (name +
-site) and researching, the article might read:
 
 ```mediawiki
 {{AIGenerated}}
 {{DynamicInfobox|qid=Q#######}}
 
-'''Plattdütsche Speeldeel Beispieldorf''' is a [[wikipedia:Low German|Low German]]
-amateur theatre group based in [[wikipedia:Beispieldorf|Beispieldorf]], Lower Saxony,
-Germany.<ref name="site" /> Founded in 1951, it stages an annual winter
-production in the local parish hall and performs in the regional
-[[wikipedia:Northern Low Saxon|Northern Low Saxon]] dialect.<ref name="site" /><ref name="press" />
+'''Plattdütsche Speeldeel Beispieldorf''' is a [[wikipedia:Low German|Low German]] amateur theatre group based in [[wikipedia:Beispieldorf|Beispieldorf]], Lower Saxony, Germany.<ref name="site" /> Founded in 1951, it stages an annual winter production in the local parish hall in the [[wikipedia:Northern Low Saxon|Northern Low Saxon]] dialect.<ref name="site" /><ref name="press1" />
 
 == History ==
-The group was founded in 1951 by members of the village
-[[wikipedia:Heimat|Heimat]] society and has performed continuously since, apart from a
-pause during the 1970s.<ref name="press" /> It is a registered association
-([[wikipedia:Voluntary association#Germany|e.V.]]).<ref name="site" />
+The group was founded in 1951 by members of the village [[wikipedia:Heimat|Heimat]] society and has performed continuously since, apart from a pause during the 1970s.<ref name="press1" /> It is a registered association ([[wikipedia:Voluntary association#Germany|e. V.]]).<ref name="site" />
 
 == Repertoire ==
-The stage specialises in Low German comedies, with one full-length production
-each winter; recent seasons have also included a short youth-group piece.<ref name="site" />
+The stage specialises in Low German comedies, with one full-length production each winter; recent seasons have also included a short youth-group piece.<ref name="site" />
 
 == Organisation ==
-The group is a member of the [[Amateurtheaterverband Niedersachsen e. V.]] and has
-taken part in the [[Niedersächsische Amateurtheatertage]].<ref name="press" />
+The group is a member of the [[Amateurtheaterverband Niedersachsen e. V.]] and has taken part in the [[Niedersächsische Amateurtheatertage]].<ref name="press1" />
 
 == References ==
 <references>
 <ref name="site">[https://example-speeldeel.de/ Über uns], Plattdütsche Speeldeel Beispieldorf, retrieved 29 June 2026.</ref>
-<ref name="press">[https://example-zeitung.de/70-jahre-speeldeel 70 Jahre Speeldeel Beispieldorf], Beispiel-Zeitung, 12 March 2021, retrieved 29 June 2026.</ref>
+<ref name="press1">[https://example-zeitung.de/70-jahre-speeldeel 70 Jahre Speeldeel Beispieldorf], Beispiel-Zeitung, 12 March 2021, retrieved 29 June 2026.</ref>
 </references>
 ```
-
-In that example, note how `Low German`, the place, the dialect, `Heimat`, and the
-`e.V.` legal form all point to **English Wikipedia** via `wikipedia:` (general
-knowledge) — each of those titles should be confirmed to exist before shipping —
-while the association and the festival point to **local** wiki pages
-(amateur-theatre scene). The body refs are all self-closing and their content is
-defined once in the `<references>` block, so every name resolves and none triggers
-a "has no content" error. Each factual claim is referenced with the basic ref
-format, the tone states rather than sells, and the two mandatory templates head
-the page with the input QID in the infobox.
