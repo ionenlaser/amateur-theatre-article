@@ -1,8 +1,10 @@
 # Wikidata enrichment via QuickStatements (V1 commands)
 
-This step is **optional and runs only when the user asks for it**, after the
-article is finished and, ideally, after the archive.org post-processing step has
-added snapshot links to its references. Never run it automatically.
+This step runs **right after the article and its feedback report**, in the same
+run, while the research is still in context. It writes the commands and the
+report; the `archive_refs.py` post-processing script, run later by the user,
+adds the archive pairs to the references, builds the batch URLs and rebuilds the
+folder-wide `000_` files.
 
 The target is QuickStatements 3.0 (`qs-dev.toolforge.org`), which runs V1 commands
 through the Wikibase REST API. Everything below is the V1 subset that tool accepts.
@@ -13,15 +15,13 @@ classic QuickStatements tool doesn't support importing commands by URL.
 
 To keep this step cheap, **do not start a new research round**. Work from:
 
-1. **The generated `.wiki` article** (re-read the file if it was post-processed, so
-   you pick up the archive links). The prose holds the facts, the `<ref>` that
-   follows a sentence is its source, and the `<references>` block holds the URLs,
-   retrieval dates and archive links.
+1. **The article you just wrote.** The prose holds the facts, the `<ref>` that
+   follows a sentence is its source, and its definition holds the URL and the
+   retrieval date.
 2. **Context already available in the conversation**: pages fetched, search
    results and notes from the research run that produced the article. A fact from
    there may be used if you recorded its source URL, even if it didn't make it into
-   the article text. Reference it with that URL (`S854` + `S813`). Add archive
-   pairs only if that URL is also archived in the article's refs.
+   the article text. Reference it with that URL (`S854` + `S813`).
 3. **One `get_statements(<QID>, include_external_ids=true)` call** to see which
    statements the item already has. Skip anything already present.
 
@@ -183,19 +183,19 @@ with the old value, the new one and the source.
 ## Turning a `<ref>` into a Wikidata reference
 
 Find the ref the article attaches to the sentence, then build the source pairs from
-its definition in `<references>`:
+its definition:
 
-**Web source** (`<ref name="x">[URL Title], Site, retrieved D. [ARCHIVE Archived] on A.</ref>`):
+**Web source** (`<ref name="x">[URL Title], Site, retrieved D.</ref>`):
 
 | Ref part | Source pair |
 |---|---|
 | the cited URL | `S854 "<URL>"` (reference URL) |
 | `retrieved D` | `S813 +YYYY-MM-DDT00:00:00Z/11` (retrieved) |
-| `[ARCHIVE Archived]`, if present | `S1065 "<ARCHIVE>"` (archive URL) |
-| `on A`, if present | `S2960 +YYYY-MM-DDT00:00:00Z/11` (archive date) |
 
-Add `S1065`/`S2960` **only if the ref has an archive link**. Never create one
-yourself here.
+Write **no `S1065`/`S2960` archive pairs**. `archive_refs.py` appends them to
+every reference block with an `S854` and no `S1065`, using the same snapshot it
+adds to the article's ref, so the URL in `S854` must be the cited URL exactly as
+it appears in the ref.
 
 **Wikimedia source** (a Wikipedia `oldid` permalink or another Wikimedia project;
 a non-Wikimedia MediaWiki such as a regional wiki is a normal web source, above):
@@ -254,11 +254,17 @@ Article `Achimer_Speeldäl.wiki` (`Q122834859`) says the group was founded in 19
 citing:
 
 ```mediawiki
-<ref name="chronik">[https://www.achimer-speeldael.de/chronik Chronik], Achimer Speeldäl e.V., retrieved 14 October 2026. [https://web.archive.org/web/20261014133712/https://www.achimer-speeldael.de/chronik Archived] on 14 October 2026.</ref>
+<ref name="chronik">[https://www.achimer-speeldael.de/chronik Chronik], Achimer Speeldäl e.V., retrieved 14 October 2026.</ref>
 ```
 
 `get_statements` already shows `P571 = 1946`, so inception is skipped. For an item
 that lacked it, the line would be:
+
+```
+Q122834859	P571	+1946-00-00T00:00:00Z/9	S854	"https://www.achimer-speeldael.de/chronik"	S813	+2026-10-14T00:00:00Z/11
+```
+
+After `archive_refs.py` has run, the same line carries the snapshot:
 
 ```
 Q122834859	P571	+1946-00-00T00:00:00Z/9	S854	"https://www.achimer-speeldael.de/chronik"	S813	+2026-10-14T00:00:00Z/11	S1065	"https://web.archive.org/web/20261014133712/https://www.achimer-speeldael.de/chronik"	S2960	+2026-10-14T00:00:00Z/11
@@ -309,7 +315,7 @@ for items resolved with `search_items`; never guess them:
 ```
 Q123456789	P166	Q<award>	P585	+2012-00-00T00:00:00Z/9	S854	"<winners list URL>"	S813	+2026-10-14T00:00:00Z/11
 Q123456789	P166	Q<award>	P585	+2018-00-00T00:00:00Z/9	S854	"<winners list URL>"	S813	+2026-10-14T00:00:00Z/11
-Q123456789	P166	Q<other award>	P585	+2022-00-00T00:00:00Z/9	P1027	Q<awarding body>	P1686	Q<production or play>	S854	"<press URL>"	S813	+2026-10-14T00:00:00Z/11	S1065	"<archive URL>"	S2960	+2026-10-14T00:00:00Z/11
+Q123456789	P166	Q<other award>	P585	+2022-00-00T00:00:00Z/9	P1027	Q<awarding body>	P1686	Q<production or play>	S854	"<press URL>"	S813	+2026-10-14T00:00:00Z/11
 ```
 
 An alias and a Facebook profile, both unreferenced:
@@ -376,7 +382,7 @@ Add what the sources support; leave out the rest. Resolve every item value with
 | Official website | `P856` | URL | The award's own page at the awarding body, if it has one |
 
 Reference every statement except labels, descriptions, aliases and the website
-with `S854` + `S813` (and archive pairs if you have them), as for the group.
+with `S854` + `S813`, as for the group; `archive_refs.py` adds the archive pairs.
 
 ### Creation batch
 
@@ -396,7 +402,7 @@ LAST	P1001	Q<district>	S854	"<awarding body page>"	S813	+2026-10-14T00:00:00Z/11
 LAST	P571	+2005-00-00T00:00:00Z/9	S854	"<awarding body page>"	S813	+2026-10-14T00:00:00Z/11
 ```
 
-Its batch URL uses QS 3.0 like every other batch (see "Building the batch URL").
+`archive_refs.py` builds its QS 3.0 batch URL like every other batch's.
 
 ### Pending lines and the placeholder
 
@@ -418,14 +424,15 @@ never go into `<base>.qs`: QuickStatements would reject the placeholder.
 
 Tell the user (in the report and when presenting the batches) how to finish:
 
-1. Open `000_all.award-items.qs.url` (or the group's award-items link) and run
-   the batch in QuickStatements while logged in.
+1. Open `000_all.award-items.qs.url` (or the award-items link in the group's
+   report) and run the batch in QuickStatements while logged in.
 2. Note the new QID from the batch result, or find the new item on Wikidata by
    its label.
 3. Tell Claude "<award label> is Q…", e.g. "Beispieler Amateurtheaterpreis is
    Q123456789". Claude then fills in the placeholder in every group (below).
    Without Claude: `sed -i 's/Q<NEW: Beispieler Amateurtheaterpreis>/Q123456789/g' *.pending.qs`,
-   then move the lines into each group's `.qs` by hand.
+   then move the lines into each group's `.qs` by hand and re-run
+   `archive_refs.py` on the folder.
 
 When the user gives you the QID, do this for the whole output folder, with no new
 research:
@@ -441,30 +448,22 @@ research:
    it's empty.
 4. **Delete the award's `CREATE` block** from its `.award-items.qs`, since it has
    run. Delete the file if nothing is left.
-5. **Update each affected report**: the main batch line (new command count and
-   rebuilt URL), one row per new `P166` under "Added statements", the award
-   moved from "New items proposed" to "Matched to existing items" as
-   "<label> → Q… (created <date>)", and the pending line rewritten with the QID.
-6. Regenerate the folder-wide batch files.
-
-## Building the batch URL
-
-Percent-encode the whole command block programmatically, never by hand. A raw `+`
-decodes to a space and corrupts every date:
-
-```python
-import urllib.parse
-url = "https://qs-dev.toolforge.org/batch/new?v1=" + urllib.parse.quote(commands, safe="")
-```
-
-Check that `+` came out as `%2B`.
+5. **Update each affected report**: one row per new `P166` under "Added
+   statements", the award moved from "New items proposed" to "Matched to
+   existing items" as "<label> → Q… (created <date>)", and the pending line
+   rewritten with the QID.
+6. Ask the user to re-run `archive_refs.py` on the folder (or run it yourself
+   if you have a shell). It rewrites each report's `## Batches` section and
+   rebuilds the `000_` files from the updated batches.
 
 ## Presenting the result
 
 Write the command block to a `.qs` file next to the article (same base name), and
-show the user both the readable commands and the batch URL. The URL opens a draft
-in QuickStatements: the user must be logged in, reviews it, and runs it themselves.
-Nothing is saved automatically.
+show the user the readable commands. Don't build a batch URL yourself:
+`archive_refs.py` writes it into the report once the archive pairs are in, so the
+URL always matches the final file. The URL opens a draft in QuickStatements: the
+user must be logged in, reviews it, and runs it themselves. Nothing is saved
+automatically.
 
 Then write the report, below.
 
@@ -476,26 +475,35 @@ user whether it should join the default set before treating it as standard.
 
 Write `<base>.qs-report.md` next to the article and the `.qs` file. It is for
 the person who reviews and runs the batches, so make every point actionable.
-Leave out every section, sub-heading and batch line that would be empty: no
-"None.", no "Award items: none." A group with nothing to report beyond the
-added statements gets a report with only the title, the batches and the table.
+Leave out every section and sub-heading that would be empty: no "None." A group
+with nothing to report beyond the added statements gets a report with only the
+title and the table.
+
+Don't write a `## Batches` section. `archive_refs.py` inserts it before the
+first `##` heading (and replaces it on every re-run), listing the main batch,
+award items and pending lines with their command counts and QuickStatements
+links, for example:
 
 ```markdown
-# QuickStatements report: <Group name> (<QID>)
-
-Generated <date> from `<base>.wiki`.
-
 ## Batches
 - Main batch: `<base>.qs`, <n> commands, [open in QuickStatements](<qs-dev URL>)
 - Award items: `<base>.award-items.qs`, <n> new items, [open in QuickStatements](<qs-dev URL>)
 - Pending: `<base>.pending.qs`, <n> lines waiting for: <award label> (created by
   `<file>.award-items.qs`). After running that batch, tell Claude "<award label>
   is Q…" to fill in the placeholder.
+```
+
+The report you write:
+
+```markdown
+# QuickStatements report: <Group name> (<QID>)
+
+Generated <date> from `<base>.wiki`.
 
 ## Added statements
 | Property | Value | Source |
 |---|---|---|
-| P571 inception | 1946 | Chronik (archived) |
+| P571 inception | 1946 | Chronik |
 
 ## Skipped
 - P571 inception: already on the item (1946).
@@ -530,9 +538,9 @@ Generated <date> from `<base>.wiki`.
 
 ## Folder-wide batch files
 
-After writing a group's `.qs` and `.qs-report.md`, regenerate the combined files
-for the whole output folder, so one review and one run cover every group. They
-start with `000_` so they sort before every group's files:
+`archive_refs.py` builds these from all groups in the output folder after
+archiving, so one review and one run cover every group. Don't write them
+yourself. They start with `000_` so they sort before every group's files:
 
 | File | Content |
 |---|---|
@@ -544,49 +552,6 @@ start with `000_` so they sort before every group's files:
 | `000_all.qs-report.md` | an overview, then every `<base>.qs-report.md` with headings demoted one level |
 
 The `.url` files are internet shortcuts (`[InternetShortcut]` / `URL=…`), so a
-file manager opens them in the browser. Rebuild all of them from scratch each
-time (the snippet deletes the old `000_` files first), never append, and skip the `000_` files themselves when collecting:
-
-```python
-import pathlib, re, urllib.parse, datetime
-d = pathlib.Path("<output folder>")
-for p in d.glob("000_*"):
-    p.unlink()
-def group_files(suffix):
-    return sorted(p for p in d.glob("*" + suffix)
-                  if not p.name.startswith("000_")
-                  and not (suffix == ".qs" and p.name.endswith(".award-items.qs")))
-def write_batch(name, files, base_url):
-    cmds = "\n".join(l for p in files for l in p.read_text().splitlines() if l.strip())
-    (d / name).write_text(cmds + "\n")
-    url = base_url + urllib.parse.quote(cmds, safe="")
-    (d / (name + ".url")).write_text(f"[InternetShortcut]\nURL={url}\n")
-    return cmds.count("\n") + 1, url
-main = group_files(".qs")
-n_main, url_main = write_batch("000_all.qs", main, "https://qs-dev.toolforge.org/batch/new?v1=")
-awards = group_files(".award-items.qs")
-if awards:
-    n_aw, url_aw = write_batch("000_all.award-items.qs", awards, "https://qs-dev.toolforge.org/batch/new?v1=")
-pending = group_files(".pending.qs")
-if pending:
-    (d / "000_all.pending.qs").write_text("".join(p.read_text() for p in pending))
-reports = group_files(".qs-report.md")
-out = [f"# QuickStatements report: all groups\n\nGenerated {datetime.date.today()} "
-       f"from {len(reports)} group reports.\n\n## Batches\n"
-       f"- Main batch: `000_all.qs`, {n_main} commands from {len(main)} groups, "
-       f"[open in QuickStatements]({url_main})"]
-if awards:
-    out.append(f"- Award items: `000_all.award-items.qs`, {n_aw} commands from {len(awards)} groups, "
-               f"[open in QuickStatements]({url_aw})")
-if pending:
-    labels = sorted(set(re.findall(r"Q<NEW: ([^>]+)>", "".join(p.read_text() for p in pending))))
-    out.append(f"- Pending: `000_all.pending.qs`, waiting for: {', '.join(labels)}. Run the "
-               "award-items batch, then tell Claude \"<award label> is Q…\" to fill in the placeholders.")
-for p in reports:
-    out.append("\n" + re.sub(r"^(#+) ", r"#\1 ", p.read_text().strip(), flags=re.M))
-(d / "000_all.qs-report.md").write_text("\n".join(out) + "\n")
-```
-
-A combined URL can get long. If QuickStatements doesn't open it, paste the
-content of `000_all.qs` into its import box instead. Tell the user the command
-count and the URL length.
+file manager opens them in the browser. A combined URL can get long; the script
+prints its length. If QuickStatements doesn't open it, paste the content of
+`000_all.qs` into its import box instead.

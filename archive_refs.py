@@ -1,4 +1,4 @@
-"""Add Internet Archive snapshots to the references of generated .wiki articles.
+"""Add Internet Archive snapshots to generated articles and QuickStatements batches.
 
 For every <ref>...</ref> whose first external link is not a Wikimedia site, ask the
 Wayback Machine for a snapshot and append a link to it. A snapshot from the last
@@ -7,15 +7,25 @@ six months is reused; otherwise Save Page Now is asked for a fresh capture:
     <ref name="site">[https://example.de/ Über uns], Example e.V., retrieved 14 October 2026.</ref>
  -> <ref name="site">[https://example.de/ Über uns], Example e.V., retrieved 14 October 2026. [https://web.archive.org/web/20261014120000/https://example.de/ Archived] on 14 October 2026.</ref>
 
-Refs that already contain a web.archive.org link are left alone, so the script can
-be re-run safely. If a capture fails, the most recent existing snapshot is used
-regardless of age; if there is none, the ref is left unchanged and reported.
+The QuickStatements files next to each article (<base>.qs, <base>.award-items.qs,
+<base>.pending.qs) get the same snapshots: every reference block with an S854
+reference URL and no S1065 gets an S1065 archive URL and an S2960 archive date.
+
+Afterwards the batch files of every touched folder are rebuilt: the "## Batches"
+section of each <base>.qs-report.md (with its QuickStatements 3.0 URLs) and the
+folder-wide 000_all.qs, 000_all.qs.url, 000_all.award-items.qs(.url),
+000_all.pending.qs and 000_all.qs-report.md.
+
+Refs and reference blocks that already have an archive link are left alone, so the
+script can be re-run safely. If a capture fails, the most recent existing snapshot
+is used regardless of age; if there is none, the ref is left unchanged and reported.
 
 Usage:
     python3 archive_refs.py [--dry-run] [PATH ...]   # PATH: .wiki files or folders (default: articles)
 """
 
 import argparse
+import datetime as dt
 import json
 import re
 import sys
@@ -44,6 +54,10 @@ WIKIMEDIA_DOMAINS = (
 REF_RE = re.compile(r"(<ref(?:\s+name=\"[^\"]*\")?\s*>)(.*?)(</ref>)", re.DOTALL)
 LINK_RE = re.compile(r"\[(https?://[^\s\]]+)")
 SNAPSHOT_RE = re.compile(r"/web/(\d{14})/")
+QS_URL_RE = re.compile(r'\tS854\t"([^"]+)"')
+QS_BLOCK_RE = re.compile(r"(?=\t!S\d)")  # a second reference block starts with !S
+QS_BASE_URL = "https://qs-dev.toolforge.org/batch/new?v1="
+QS_SUFFIXES = (".award-items.qs", ".pending.qs", ".qs")
 SAVE_DELAY = 6  # seconds between captures; anonymous Save Page Now is rate-limited
 MAX_SNAPSHOT_AGE = timedelta(days=183)  # reuse snapshots up to six months old
 
@@ -138,7 +152,7 @@ def archive(url, cache, dry_run):
     return cache[url]
 
 
-def process_file(path, cache, dry_run):
+def process_wiki(path, cache, dry_run):
     text = path.read_text(encoding="utf-8")
     missing = []
 
@@ -169,24 +183,212 @@ def process_file(path, cache, dry_run):
     return missing
 
 
+def process_qs(path, cache, dry_run):
+    """Add S1065/S2960 to every reference block that has an S854 but no S1065."""
+    text = path.read_text(encoding="utf-8")
+    missing = []
+
+    def archive_block(block):
+        link = QS_URL_RE.search(block)
+        if not link or "\tS1065\t" in block or is_wikimedia(link.group(1)):
+            return block
+        url = link.group(1)
+        if dry_run:
+            print(f"  would archive {url}")
+            return block
+        snap = archive(url, cache, dry_run)
+        if not snap:
+            missing.append(url)
+            return block
+        date = snapshot_time(snap).strftime("+%Y-%m-%dT00:00:00Z/11")
+        return f'{block}\tS1065\t"{snap}"\tS2960\t{date}'
+
+    lines = [
+        "".join(archive_block(b) for b in QS_BLOCK_RE.split(line))
+        for line in text.splitlines()
+    ]
+    new_text = "\n".join(lines) + "\n"
+    if new_text != text and not dry_run:
+        path.write_text(new_text, encoding="utf-8")
+        print(f"  updated {path}")
+    return missing
+
+
+def qs_kind(path):
+    """Return (base name, suffix) of a group's QuickStatements file, or None."""
+    if path.name.startswith("000_"):
+        return None
+    for suffix in QS_SUFFIXES:
+        if path.name.endswith(suffix):
+            return path.name[: -len(suffix)], suffix
+    return None
+
+
+def group_files(folder, suffix):
+    return sorted(
+        p
+        for p in folder.glob("*" + suffix)
+        if (qs_kind(p) or (None, None))[1] == suffix
+    )
+
+
+def commands(path):
+    return [l for l in path.read_text(encoding="utf-8").splitlines() if l.strip()]
+
+
+def batch_url(lines):
+    return QS_BASE_URL + urllib.parse.quote("\n".join(lines), safe="")
+
+
+def placeholders(lines):
+    return sorted(set(re.findall(r"Q<NEW: ([^>]+)>", "\n".join(lines))))
+
+
+def creator_of(folder, label):
+    """Return the award-items file whose CREATE block has this Lde label."""
+    for p in group_files(folder, ".award-items.qs"):
+        if f'LAST\tLde\t"{label}"' in p.read_text(encoding="utf-8"):
+            return p.name
+    return None
+
+
+def update_report(folder, base):
+    """Rewrite the "## Batches" section of <base>.qs-report.md from its batch files."""
+    report = folder / (base + ".qs-report.md")
+    if not report.exists():
+        return
+    out = []
+    main = folder / (base + ".qs")
+    awards = folder / (base + ".award-items.qs")
+    pending = folder / (base + ".pending.qs")
+    if main.exists() and (cmds := commands(main)):
+        out.append(
+            f"- Main batch: `{main.name}`, {len(cmds)} commands, "
+            f"[open in QuickStatements]({batch_url(cmds)})"
+        )
+    if awards.exists() and (cmds := commands(awards)):
+        n = sum(l == "CREATE" for l in cmds)
+        out.append(
+            f"- Award items: `{awards.name}`, {n} new items, "
+            f"[open in QuickStatements]({batch_url(cmds)})"
+        )
+    if pending.exists() and (cmds := commands(pending)):
+        for label in placeholders(cmds):
+            creator = creator_of(folder, label)
+            source = f" (created by `{creator}`)" if creator else ""
+            out.append(
+                f"- Pending: `{pending.name}`, {len(cmds)} lines waiting for: {label}{source}. "
+                f'After running that batch, tell Claude "{label} is Q…" to fill in the placeholder.'
+            )
+    section = "## Batches\n" + "\n".join(out) + "\n\n" if out else ""
+    text = report.read_text(encoding="utf-8")
+    if re.search(r"^## Batches\n", text, re.M):
+        new_text = re.sub(
+            r"^## Batches\n.*?(?=^## |\Z)", section, text, flags=re.M | re.S
+        )
+    elif m := re.search(r"^## ", text, re.M):
+        new_text = text[: m.start()] + section + text[m.start() :]
+    else:
+        new_text = text.rstrip("\n") + "\n\n" + section
+    if new_text != text:
+        report.write_text(new_text, encoding="utf-8")
+
+
+def write_batch(folder, name, files):
+    cmds = [l for p in files for l in commands(p)]
+    (folder / name).write_text("\n".join(cmds) + "\n", encoding="utf-8")
+    url = batch_url(cmds)
+    (folder / (name + ".url")).write_text(
+        f"[InternetShortcut]\nURL={url}\n", encoding="utf-8"
+    )
+    return len(cmds), url
+
+
+def rebuild_batches(folder):
+    """Update every group report's batch links and rebuild the 000_all.* files."""
+    bases = sorted({qs_kind(p)[0] for p in folder.glob("*.qs") if qs_kind(p)})
+    for base in bases:
+        update_report(folder, base)
+    for p in folder.glob("000_all.*"):
+        if p.name != "000_all.tasks.md":
+            p.unlink()
+    main = group_files(folder, ".qs")
+    awards = group_files(folder, ".award-items.qs")
+    pending = group_files(folder, ".pending.qs")
+    reports = sorted(
+        p for p in folder.glob("*.qs-report.md") if not p.name.startswith("000_")
+    )
+    if not (main or awards or pending or reports):
+        return
+    out = [
+        f"# QuickStatements report: all groups\n\nGenerated {dt.date.today()} "
+        f"from {len(reports)} group reports.\n\n## Batches"
+    ]
+    if main:
+        n, url = write_batch(folder, "000_all.qs", main)
+        out.append(
+            f"- Main batch: `000_all.qs`, {n} commands from {len(main)} groups, "
+            f"[open in QuickStatements]({url})"
+        )
+        print(f"  {folder / '000_all.qs'}: {n} commands, URL {len(url)} characters")
+    if awards:
+        n, url = write_batch(folder, "000_all.award-items.qs", awards)
+        out.append(
+            f"- Award items: `000_all.award-items.qs`, {n} commands from {len(awards)} groups, "
+            f"[open in QuickStatements]({url})"
+        )
+    if pending:
+        cmds = [l for p in pending for l in commands(p)]
+        (folder / "000_all.pending.qs").write_text(
+            "\n".join(cmds) + "\n", encoding="utf-8"
+        )
+        out.append(
+            f"- Pending: `000_all.pending.qs`, waiting for: {', '.join(placeholders(cmds))}. "
+            'Run the award-items batch, then tell Claude "<award label> is Q…" to fill in the placeholders.'
+        )
+    for p in reports:
+        text = p.read_text(encoding="utf-8").strip()
+        out.append("\n" + re.sub(r"^(#+) ", r"#\1 ", text, flags=re.M))
+    (folder / "000_all.qs-report.md").write_text(
+        "\n".join(out) + "\n", encoding="utf-8"
+    )
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument(
-        "paths", nargs="*", default=["articles"], help=".wiki files or folders"
+        "paths",
+        nargs="*",
+        default=["articles"],
+        help=".wiki files or folders (their .qs files are included)",
     )
     parser.add_argument(
         "--dry-run", action="store_true", help="list URLs without archiving"
     )
     args = parser.parse_args()
 
-    files = []
+    wikis, batches = [], []
     for p in map(Path, args.paths):
-        files += sorted(p.glob("*.wiki")) if p.is_dir() else [p]
+        if p.is_dir():
+            wikis += sorted(p.glob("*.wiki"))
+            batches += sorted(q for q in p.glob("*.qs") if qs_kind(q))
+        else:
+            wikis.append(p)
+            batches += [
+                q for s in QS_SUFFIXES if (q := p.with_name(p.stem + s)).exists()
+            ]
 
     cache, missing = {}, []
-    for f in files:
+    for f in wikis:
         print(f)
-        missing += [(f, u) for u in process_file(f, cache, args.dry_run)]
+        missing += [(f, u) for u in process_wiki(f, cache, args.dry_run)]
+    for f in batches:
+        print(f)
+        missing += [(f, u) for u in process_qs(f, cache, args.dry_run)]
+
+    if not args.dry_run:
+        for folder in sorted({f.parent for f in wikis + batches}):
+            rebuild_batches(folder)
 
     if missing:
         print("\nNo snapshot available for:", file=sys.stderr)

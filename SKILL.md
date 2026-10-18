@@ -8,9 +8,9 @@ description: >-
   Theatre Wiki page for this troupe" or "turn this QID into a wiki article".
   Reads the Wikidata item, researches the group online, and outputs MediaWiki
   markup with {{DynamicInfobox|qid=...}} and {{AIGenerated}}, enwiki interwiki
-  links for generic topics, and local links for amateur-theatre topics. Can also
-  propose referenced Wikidata statements (inception, awards, aliases, social
-  media) as a QuickStatements V1 batch URL. Trigger even when templates are not named. Do
+  links for generic topics, and local links for amateur-theatre topics. Then
+  writes referenced Wikidata statements (inception, awards, aliases, social
+  media) as a QuickStatements V1 batch. Trigger even when templates are not named. Do
   NOT use for general Wikidata reconciliation or authority-file lookups
   (normdata-search) or the Baroque ceiling-painting corpus (deckenmalerei-lab).
 ---
@@ -27,11 +27,12 @@ to read the item just enough to know *what the group is called* and *where to go
 looking*, then write the prose, the context, and the citations that Wikidata and
 the infobox cannot supply on their own.
 
-Work in four steps. Read `references/wikidata.md` before step 1,
-`references/article-format.md` before step 3 and `references/report-format.md`
-before step 4, which ends with a feedback report. Step 5 (Wikidata enrichment) is
-optional and runs only when the user asks for it; read
-`references/quickstatements.md` before it.
+Work in five steps. Read `references/wikidata.md` before step 1,
+`references/article-format.md` before step 3, `references/report-format.md`
+before step 4, which ends with a feedback report, and
+`references/quickstatements.md` before step 5, the Wikidata batch. Step 5 runs
+right after the article, in the same run, while the research is still in
+context.
 
 ## Step 1 — Read the Wikidata item
 
@@ -292,27 +293,17 @@ Keep each point to a line or two. Write "None found." under a heading rather
 than dropping it, so the reviewer sees it was checked. The report is not
 uploaded: `upload_articles.py` only picks up `.wiki` files.
 
-### Recommend the next steps (do not run them)
+Then go straight on to Step 5.
 
-After delivering the article, tell the user what can follow, in this order, and
-stop there:
+## Step 5 — Wikidata batch via QuickStatements
 
-1. **Archive the references.** If the user has the `archive_refs.py`
-   post-processing script (see the skill repository's README), recommend running
-   it on the output folder. It adds archive.org snapshot links to the references.
-2. **Wikidata enrichment.** Offer to generate a QuickStatements batch from the
-   finished article (Step 5), ideally after archiving, so the archive links can be
-   used as references.
-
-Do **not** start Step 5 on your own after writing the article; wait for the user.
-
-## Step 5 — Wikidata enrichment via QuickStatements (on request only)
-
-Read `references/quickstatements.md` first. Do not start a new research round,
+Run this right after the article and its report, without waiting for the user:
+the research is still in context, so it costs little. Read
+`references/quickstatements.md` first. Do not start a new research round,
 except for awards that need a new Wikidata item (point 5).
-Work from the finished `.wiki` article (re-read it, in case the archive script has
-updated it), anything already gathered earlier in the conversation with a recorded
-source URL, and one `get_statements` call for the item.
+Work from the article you just wrote, anything already gathered earlier in the
+conversation with a recorded source URL, and one `get_statements` call for the
+item.
 
 1. Extract the facts the item does **not** already have: inception (`P571`; with two
    relevant dates, add both with `P1013` criterion used = `Q132555` de jure for the
@@ -335,16 +326,15 @@ source URL, and one `get_statements` call for the item.
    fetch of the official homepage to read its profile links is allowed. Skip
    anything already on the item, and never add person-valued statements.
 2. **Reference the non-trivial statements** (dates, locations, addresses, names,
-   awards) from the ref the article attaches to that fact: `S854` reference URL + `S813`
-   retrieved, plus **`S1065` archive URL and `S2960` archive date when the ref has
-   an archive.org link**. Facts sourced from Wikipedia or another Wikimedia project
-   get only `S143` (imported from Wikimedia project), with no URL or dates.
-   Identifiers (website, social media) and aliases get no reference.
-3. Build the V1 command block, percent-encode it programmatically onto
-   `https://qs-dev.toolforge.org/batch/new?v1=` (QS 3.0, for every batch: the
-   classic tool has no URL import), save the commands to a `.qs` file
-   beside the article, and show the user both. The link opens a draft the user
-   reviews and runs while logged in; nothing is saved automatically.
+   awards) from the ref the article attaches to that fact: `S854` reference URL +
+   `S813` retrieved. Don't add archive pairs (`S1065`/`S2960`): `archive_refs.py`
+   adds them later from the same snapshots it adds to the article. Facts sourced
+   from Wikipedia or another Wikimedia project get only `S143` (imported from
+   Wikimedia project), with no URL or dates. Identifiers (website, social media)
+   and aliases get no reference.
+3. Write the V1 command block to `<base>.qs` beside the article. Don't build the
+   batch URL and don't write the folder-wide `000_` files: `archive_refs.py` does
+   both after archiving.
 4. **Fix clear errors on the item** in the same batch (see "Fixing existing
    statements" in `references/quickstatements.md`): `SWITCH_VALUE` for a wrong
    value such as a wrong town, `R+`/`R-` for ranks. Only when the article's
@@ -370,21 +360,25 @@ source URL, and one `get_statements` call for the item.
    batch adds, what was skipped and why, conflicts between the item and the
    article, the award items proposed for creation (and awards rejected as not
    concrete enough), corrections made to existing statements, conflicts left
-   for a manual check, and facts outside the default set.
-7. **Regenerate the folder-wide batch files** (see "Folder-wide batch files" in
-   `references/quickstatements.md`): `000_all.qs` with its `000_all.qs.url`,
-   `000_all.award-items.qs` with its `.url` if any group has award items,
-   `000_all.pending.qs` if any lines wait for a new award, and the combined
-   `000_all.qs-report.md`. The `000_` prefix sorts them before every
-   group's files. Rebuild them from all groups in the folder, not only the
-   current one.
+   for a manual check, and facts outside the default set. Leave out the
+   `## Batches` section: the script writes it, with the batch URLs.
+
+### Recommend the next step (do not run it)
+
+After delivering the article and the batch, tell the user to run the
+`archive_refs.py` post-processing script on the output folder (see the skill
+repository's README), and stop there. In one pass it adds archive.org snapshot
+links to the article's references, adds the matching `S1065`/`S2960` pairs to the
+`.qs` files, writes the batch URLs into each `.qs-report.md`, and rebuilds the
+folder-wide `000_all.*` files. The batches are ready to run only after that.
 
 **When the user reports a created award** ("<award label> is Q…"), resolve its
 placeholder across the whole output folder as described in "Resolving
 placeholders after the award item is created" in `references/quickstatements.md`:
 verify the item, move the pending lines into each group's `.qs`, delete the run
-`CREATE` block, update the reports and regenerate the `000_` files. When
-presenting award-items batches, always tell the user this is the next step.
+`CREATE` block and update the reports, then have `archive_refs.py` re-run on the
+folder to rebuild the batch links. When presenting award-items batches, always
+tell the user this is the next step.
 
 If the article holds a useful fact of a type outside the default set (e.g.
 described at URL `P973`, a member organisation `P463`), propose it and ask whether

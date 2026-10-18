@@ -1,8 +1,8 @@
 # amateur-theatre-article
 
 A Claude skill that turns a Wikidata QID for an amateur theatre group into a
-neutral, referenced MediaWiki article. It can also propose Wikidata statements
-as a QuickStatements batch. See [SKILL.md](SKILL.md) for the full instructions.
+neutral, referenced MediaWiki article, and proposes the matching Wikidata
+statements as a QuickStatements batch in the same run. See [SKILL.md](SKILL.md) for the full instructions.
 
 ## Repository layout
 
@@ -12,8 +12,8 @@ as a QuickStatements batch. See [SKILL.md](SKILL.md) for the full instructions.
 | `references/` | Reference docs the skill loads on demand |
 | `amateur-theatre-article.skill` | Packaged skill, ready to upload |
 | `theaterlist.csv` | List of theatre groups on Wikidata (not part of the skill) |
-| `articles/` | Generated articles (`.wiki`), ready to paste into the wiki, with their feedback reports (`.report.md`) and, after the Wikidata step, QuickStatements batches (`.qs`, `.award-items.qs`) and reports (`.qs-report.md`) |
-| `archive_refs.py` | Post-processing: adds Internet Archive snapshots to references |
+| `articles/` | Generated articles (`.wiki`), ready to paste into the wiki, with their feedback reports (`.report.md`), QuickStatements batches (`.qs`, `.award-items.qs`, `.pending.qs`) and reports (`.qs-report.md`), and the folder-wide `000_all.*` batch files |
+| `archive_refs.py` | Post-processing: adds Internet Archive snapshots to references and QuickStatements batches, and builds the batch URLs |
 | `upload_articles.py` | Uploads the articles to the wiki |
 
 ## Building the `.skill` file
@@ -50,16 +50,16 @@ ln -s "$PWD" /path/to/project/.claude/skills/amateur-theatre-article
 
 Restart Claude Code; the skill then appears in the skills list.
 
-## Archiving references
+## Archiving references and building the batches
 
 After generating articles, run `archive_refs.py` to snapshot every cited web page
-in the [Internet Archive](https://web.archive.org/) and add the snapshot link to
-the reference. It's a separate step, not part of the skill, and needs only
-Python 3 (standard library):
+in the [Internet Archive](https://web.archive.org/), add the snapshot links to
+the articles and QuickStatements batches, and build the batch URLs. It's a
+separate step, not part of the skill, and needs only Python 3 (standard library):
 
 ```sh
 python3 archive_refs.py --dry-run   # list the URLs it would archive
-python3 archive_refs.py             # archive and update articles/*.wiki in place
+python3 archive_refs.py             # archive and update articles/ in place
 python3 archive_refs.py articles/Foo.wiki other-folder/   # specific files or folders
 ```
 
@@ -76,9 +76,20 @@ no snapshot at all are listed at the end, and the script exits with status 1.
 Refs that already contain a `web.archive.org` link are skipped, so it's safe to
 re-run. Anonymous captures are rate-limited, so expect roughly 10–60 seconds per URL.
 
-Run it before asking Claude for the optional QuickStatements batch (skill step 5).
-That step reads only the finished article, and it adds each reference's archive
-link to the Wikidata reference as archive URL (P1065) and archive date (P2960).
+The skill writes the QuickStatements batches with reference URL (S854) and
+retrieved date (S813) only. The script then:
+
+1. adds archive URL (S1065) and archive date (S2960) to every reference block in
+   `<base>.qs`, `<base>.award-items.qs` and `<base>.pending.qs` that has an S854
+   and no S1065, reusing the snapshot it took for the article;
+2. writes the `## Batches` section of each `<base>.qs-report.md`, with command
+   counts and [QuickStatements 3.0](https://qs-dev.toolforge.org/) links;
+3. rebuilds the folder-wide `000_all.qs`, `000_all.qs.url`,
+   `000_all.award-items.qs(.url)`, `000_all.pending.qs` and
+   `000_all.qs-report.md` from every group in the folder.
+
+Re-run it after changing a `.qs` file by hand (or after Claude resolved an award
+placeholder) to refresh the links and the `000_` files.
 
 ## Uploading articles to the wiki
 
