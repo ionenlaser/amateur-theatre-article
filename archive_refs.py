@@ -24,9 +24,8 @@ All Wayback requests are paced; on HTTP 429 (Too Many Requests) the script waits
 (Retry-After, or exponential backoff), doubles the pause between requests and slowly
 speeds up again after successful calls.
 
-Captures are anonymous by default. With archive.org S3 keys
-(https://archive.org/account/s3.php) in IA_ACCESS_KEY and IA_SECRET_KEY, the
-authenticated Save Page Now 2 API is used instead, which has much higher limits:
+Captures use the authenticated Save Page Now 2 API, which needs archive.org S3 keys
+(https://archive.org/account/s3.php) in IA_ACCESS_KEY and IA_SECRET_KEY:
 
     IA_ACCESS_KEY=... IA_SECRET_KEY=... python3 archive_refs.py
 
@@ -72,7 +71,7 @@ QS_SUFFIXES = (".award-items.qs", ".pending.qs", ".qs")
 REQUEST_DELAY = 6  # minimum seconds between Wayback requests
 MAX_DELAY = 120  # upper bound for the pause after repeated 429s
 MAX_BACKOFF = 600  # upper bound for a single wait before retrying
-RETRY_CODES = (429, 500, 502, 503, 504, 520, 523)
+RETRY_CODES = (429, 500, 502, 503, 504)
 IA_KEYS = (os.environ.get("IA_ACCESS_KEY"), os.environ.get("IA_SECRET_KEY"))
 MAX_SNAPSHOT_AGE = timedelta(days=183)  # reuse snapshots up to six months old
 
@@ -135,24 +134,7 @@ def request(url, data=None, headers=None, timeout=120, tries=5):
         time.sleep(wait)
 
 
-def save_page_now(url):
-    """Capture url and return the snapshot URL, or None."""
-    if all(IA_KEYS):
-        return save_page_now_authenticated(url)
-    try:
-        with request("https://web.archive.org/save/" + url) as resp:
-            for candidate in (
-                resp.headers.get("Content-Location", ""),
-                resp.geturl(),
-            ):
-                if SNAPSHOT_RE.search(candidate):
-                    return urllib.parse.urljoin("https://web.archive.org", candidate)
-    except (urllib.error.URLError, TimeoutError) as e:
-        print(f"    capture failed: {e}", file=sys.stderr)
-    return None
-
-
-def save_page_now_authenticated(url, poll=5, max_wait=300):
+def save_page_now(url, poll=5, max_wait=300):
     """Capture url via the Save Page Now 2 API and return the snapshot URL, or None."""
     headers = {
         "Accept": "application/json",
@@ -457,6 +439,8 @@ def main():
         "--dry-run", action="store_true", help="list URLs without archiving"
     )
     args = parser.parse_args()
+    if not args.dry_run and not all(IA_KEYS):
+        parser.error("IA_ACCESS_KEY and IA_SECRET_KEY must be set")
 
     wikis, batches = [], []
     for p in map(Path, args.paths):
