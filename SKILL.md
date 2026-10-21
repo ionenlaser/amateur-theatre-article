@@ -181,9 +181,10 @@ the Step 1 `get_statements` result; no new research, except:
 
 In the final message:
 1. Name the files written.
-2. Tell the user to run `archive_refs.py` on the output folder next. It adds
-   archive links to refs and `.qs` files, writes the batch URLs and rebuilds the
-   `000_all.*` files. The batches are only ready after that.
+2. Tell the user to run `archive_refs.py` and then `build_batches.py` on the
+   output folder next. The first adds archive links to refs and `.qs` files, the
+   second writes the batch URLs and rebuilds the `000_all.*` files. The batches
+   are only ready after that.
 3. If award items were proposed: run the award-items batch, then tell Claude
    "<award label> is Q…".
 4. List facts outside the default property set (e.g. P973, P463) and ask

@@ -1,8 +1,8 @@
 """Add Internet Archive snapshots to generated articles and QuickStatements batches.
 
-For every <ref>...</ref> whose first external link is not a Wikimedia site, ask the
-Wayback Machine for a snapshot and append a link to it. A snapshot from the last
-six months is reused; otherwise Save Page Now is asked for a fresh capture:
+For every <ref>...</ref> whose first external link is not a Wikimedia site, ask
+Save Page Now for a snapshot and append a link to it. Save Page Now reuses a
+snapshot from the last six months instead of taking a new one:
 
     <ref name="site">[https://example.de/ Über uns], Example e.V., retrieved 14 October 2026.</ref>
  -> <ref name="site">[https://example.de/ Über uns], Example e.V., retrieved 14 October 2026. [https://web.archive.org/web/20261014120000/https://example.de/ Archived] on 14 October 2026.</ref>
@@ -11,18 +11,17 @@ The QuickStatements files next to each article (<base>.qs, <base>.award-items.qs
 <base>.pending.qs) get the same snapshots: every reference block with an S854
 reference URL and no S1065 gets an S1065 archive URL and an S2960 archive date.
 
-Afterwards the batch files of every touched folder are rebuilt: the "## Batches"
-section of each <base>.qs-report.md (with its QuickStatements 3.0 URLs) and the
-folder-wide 000_all.qs, 000_all.qs.url, 000_all.award-items.qs(.url),
-000_all.pending.qs and 000_all.qs-report.md.
+Run build_batches.py afterwards to write the batch URLs and the 000_all.* files.
 
 Refs and reference blocks that already have an archive link are left alone, so the
 script can be re-run safely. If a capture fails, the most recent existing snapshot
 is used regardless of age; if there is none, the ref is left unchanged and reported.
 
-All Wayback requests are paced; on HTTP 429 (Too Many Requests) the script waits
-(Retry-After, or exponential backoff), doubles the pause between requests and slowly
-speeds up again after successful calls.
+The availability API is rate-limited much more strictly than Save Page Now, so it
+is only asked when a capture fails. All Wayback requests are paced; on HTTP 429
+(Too Many Requests) the script waits (Retry-After, or exponential backoff),
+doubles the pause between requests and slowly speeds up again after successful
+calls.
 
 Captures use the authenticated Save Page Now 2 API, which needs archive.org S3 keys
 (https://archive.org/account/s3.php) in IA_ACCESS_KEY and IA_SECRET_KEY:
@@ -34,7 +33,6 @@ Usage:
 """
 
 import argparse
-import datetime as dt
 import json
 import os
 import re
@@ -45,6 +43,8 @@ import urllib.parse
 import urllib.request
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+
+from build_batches import QS_SUFFIXES, qs_kind
 
 USER_AGENT = "amateur-theatre-article-archiver/1.0 (+https://amateur-theatre-wiki.gwi.uni-muenchen.de/)"
 WIKIMEDIA_DOMAINS = (
@@ -64,16 +64,18 @@ WIKIMEDIA_DOMAINS = (
 REF_RE = re.compile(r"(<ref(?:\s+name=\"[^\"]*\")?\s*>)(.*?)(</ref>)", re.DOTALL)
 LINK_RE = re.compile(r"\[(https?://[^\s\]]+)")
 SNAPSHOT_RE = re.compile(r"/web/(\d{14})/")
+# "The same snapshot had been made 3025 hours, 32 minutes ago. ..."
+SAME_SNAPSHOT_RE = re.compile(
+    r"made (?:(\d+) hours?,? ?)?(?:(\d+) minutes? )?ago", re.IGNORECASE
+)
 QS_URL_RE = re.compile(r'\tS854\t"([^"]+)"')
 QS_BLOCK_RE = re.compile(r"(?=\t!S\d)")  # a second reference block starts with !S
-QS_BASE_URL = "https://qs-dev.toolforge.org/batch/new?v1="
-QS_SUFFIXES = (".award-items.qs", ".pending.qs", ".qs")
 REQUEST_DELAY = 6  # minimum seconds between Wayback requests
 MAX_DELAY = 120  # upper bound for the pause after repeated 429s
 MAX_BACKOFF = 600  # upper bound for a single wait before retrying
 RETRY_CODES = (429, 500, 502, 503, 504)
 IA_KEYS = (os.environ.get("IA_ACCESS_KEY"), os.environ.get("IA_SECRET_KEY"))
-MAX_SNAPSHOT_AGE = timedelta(days=183)  # reuse snapshots up to six months old
+REUSE_WITHIN = "183d"  # Save Page Now reuses snapshots up to six months old
 
 
 def utcnow():
@@ -134,18 +136,39 @@ def request(url, data=None, headers=None, timeout=120, tries=5):
         time.sleep(wait)
 
 
-def save_page_now(url, poll=5, max_wait=300):
+def save_page_now(url, poll=10, max_wait=300):
     """Capture url via the Save Page Now 2 API and return the snapshot URL, or None."""
     headers = {
         "Accept": "application/json",
         "Authorization": "LOW {}:{}".format(*IA_KEYS),
     }
     try:
-        data = urllib.parse.urlencode({"url": url}).encode()
+        data = urllib.parse.urlencode(
+            {
+                "url": url,
+                "if_not_archived_within": REUSE_WITHIN,
+                "skip_first_archive": "1",
+            }
+        ).encode()
         with request("https://web.archive.org/save", data, headers) as resp:
             job = json.load(resp)
-        if "job_id" not in job:
-            print(f"    capture refused: {job.get('message', job)}", file=sys.stderr)
+        if not job.get("job_id"):
+            # With if_not_archived_within, a recent capture comes back without a job.
+            if job.get("timestamp"):
+                snap = f"https://web.archive.org/web/{job['timestamp']}/{url}"
+                print(f"    reusing snapshot from {snapshot_date(snap)}")
+                return snap
+            # A capture refused as a duplicate only says how long ago the snapshot was
+            # made. Wayback redirects an inexact timestamp to the closest snapshot, so
+            # this saves an availability lookup (strictly rate-limited).
+            message = job.get("message", "")
+            if (m := SAME_SNAPSHOT_RE.search(message)) and any(m.groups()):
+                hours, minutes = (int(g or 0) for g in m.groups())
+                made = utcnow() - timedelta(hours=hours, minutes=minutes)
+                snap = f"https://web.archive.org/web/{made:%Y%m%d%H%M%S}/{url}"
+                print(f"    reusing snapshot from {snapshot_date(snap)}")
+                return snap
+            print(f"    no capture: {message or job}", file=sys.stderr)
             return None
         status_url = "https://web.archive.org/save/status/" + job["job_id"]
         for _ in range(max_wait // poll):
@@ -153,10 +176,13 @@ def save_page_now(url, poll=5, max_wait=300):
             with request(status_url, headers=headers) as resp:
                 status = json.load(resp)
             if status.get("status") == "success":
-                return (
+                snap = (
                     f"https://web.archive.org/web/{status['timestamp']}/"
                     f"{status['original_url']}"
                 )
+                if utcnow() - snapshot_time(snap) > timedelta(hours=1):
+                    print(f"    reusing snapshot from {snapshot_date(snap)}")
+                return snap
             if status.get("status") != "pending":
                 print(
                     f"    capture failed: {status.get('message', status)}",
@@ -176,7 +202,7 @@ def latest_snapshot(url):
             {"url": url, "timestamp": utcnow().strftime("%Y%m%d%H%M%S")}
         )
         api = "https://archive.org/wayback/available?" + query
-        with request(api, timeout=60) as resp:
+        with request(api, timeout=60, tries=2) as resp:
             closest = json.load(resp).get("archived_snapshots", {}).get("closest", {})
         if closest.get("available") and str(closest.get("status", "200")).startswith(
             ("2", "3")
@@ -207,16 +233,10 @@ def archive(url, cache, dry_run):
             cache[url] = None
         else:
             print(f"  archiving {url}")
-            existing = latest_snapshot(url)
-            if existing and utcnow() - snapshot_time(existing) <= MAX_SNAPSHOT_AGE:
-                print(f"    reusing snapshot from {snapshot_date(existing)}")
-                cache[url] = existing
-            else:
-                snap = save_page_now(url)
-                if not snap and existing:
-                    print("    capture failed; using existing snapshot")
-                    snap = existing
-                cache[url] = snap
+            snap = save_page_now(url)
+            if not snap and (snap := latest_snapshot(url)):
+                print(f"    using existing snapshot from {snapshot_date(snap)}")
+            cache[url] = snap
     return cache[url]
 
 
@@ -282,151 +302,6 @@ def process_qs(path, cache, dry_run):
     return missing
 
 
-def qs_kind(path):
-    """Return (base name, suffix) of a group's QuickStatements file, or None."""
-    if path.name.startswith("000_"):
-        return None
-    for suffix in QS_SUFFIXES:
-        if path.name.endswith(suffix):
-            return path.name[: -len(suffix)], suffix
-    return None
-
-
-def group_files(folder, suffix):
-    return sorted(
-        p
-        for p in folder.glob("*" + suffix)
-        if (qs_kind(p) or (None, None))[1] == suffix
-    )
-
-
-def commands(path):
-    return [l for l in path.read_text(encoding="utf-8").splitlines() if l.strip()]
-
-
-def batch_url(lines):
-    return QS_BASE_URL + urllib.parse.quote("\n".join(lines), safe="")
-
-
-def placeholders(lines):
-    return sorted(set(re.findall(r"Q<NEW: ([^>]+)>", "\n".join(lines))))
-
-
-def creator_of(folder, label):
-    """Return the award-items file whose CREATE block has this Lde label."""
-    for p in group_files(folder, ".award-items.qs"):
-        if f'LAST\tLde\t"{label}"' in p.read_text(encoding="utf-8"):
-            return p.name
-    return None
-
-
-def update_report(folder, base):
-    """Rewrite the "## Batches" section of <base>.qs-report.md from its batch files."""
-    report = folder / (base + ".qs-report.md")
-    if not report.exists():
-        return
-    out = []
-    main = folder / (base + ".qs")
-    awards = folder / (base + ".award-items.qs")
-    pending = folder / (base + ".pending.qs")
-    if main.exists() and (cmds := commands(main)):
-        out.append(
-            f"- Main batch: `{main.name}`, {len(cmds)} commands, "
-            f"[open in QuickStatements]({batch_url(cmds)})"
-        )
-    if awards.exists() and (cmds := commands(awards)):
-        n = sum(l == "CREATE" for l in cmds)
-        out.append(
-            f"- Award items: `{awards.name}`, {n} new items, "
-            f"[open in QuickStatements]({batch_url(cmds)})"
-        )
-    if pending.exists() and (cmds := commands(pending)):
-        for label in placeholders(cmds):
-            creator = creator_of(folder, label)
-            source = f" (created by `{creator}`)" if creator else ""
-            out.append(
-                f"- Pending: `{pending.name}`, {len(cmds)} lines waiting for: {label}{source}. "
-                f'After running that batch, tell Claude "{label} is Q…" to fill in the placeholder.'
-            )
-    section = "## Batches\n" + "\n".join(out) + "\n\n" if out else ""
-    text = report.read_text(encoding="utf-8")
-    if re.search(r"^## Batches\n", text, re.MULTILINE):
-        new_text = re.sub(
-            r"^## Batches\n.*?(?=^## |\Z)",
-            section,
-            text,
-            flags=re.MULTILINE | re.DOTALL,
-        )
-    elif m := re.search(r"^## ", text, re.MULTILINE):
-        new_text = text[: m.start()] + section + text[m.start() :]
-    else:
-        new_text = text.rstrip("\n") + "\n\n" + section
-    if new_text != text:
-        report.write_text(new_text, encoding="utf-8")
-
-
-def write_batch(folder, name, files):
-    cmds = [l for p in files for l in commands(p)]
-    (folder / name).write_text("\n".join(cmds) + "\n", encoding="utf-8")
-    url = batch_url(cmds)
-    (folder / (name + ".url")).write_text(
-        f"[InternetShortcut]\nURL={url}\n", encoding="utf-8"
-    )
-    return len(cmds), url
-
-
-def rebuild_batches(folder):
-    """Update every group report's batch links and rebuild the 000_all.* files."""
-    bases = sorted({qs_kind(p)[0] for p in folder.glob("*.qs") if qs_kind(p)})
-    for base in bases:
-        update_report(folder, base)
-    for p in folder.glob("000_all.*"):
-        if p.name != "000_all.tasks.md":
-            p.unlink()
-    main = group_files(folder, ".qs")
-    awards = group_files(folder, ".award-items.qs")
-    pending = group_files(folder, ".pending.qs")
-    reports = sorted(
-        p for p in folder.glob("*.qs-report.md") if not p.name.startswith("000_")
-    )
-    if not (main or awards or pending or reports):
-        return
-    out = [
-        (
-            f"# QuickStatements report: all groups\n\nGenerated {dt.date.today()} "
-            f"from {len(reports)} group reports.\n\n## Batches"
-        )
-    ]
-    if main:
-        n, url = write_batch(folder, "000_all.qs", main)
-        out.append(
-            f"- Main batch: `000_all.qs`, {n} commands from {len(main)} groups, "
-            f"[open in QuickStatements]({url})"
-        )
-        print(f"  {folder / '000_all.qs'}: {n} commands, URL {len(url)} characters")
-    if awards:
-        n, url = write_batch(folder, "000_all.award-items.qs", awards)
-        out.append(
-            f"- Award items: `000_all.award-items.qs`, {n} commands from {len(awards)} groups, "
-            f"[open in QuickStatements]({url})"
-        )
-    if pending:
-        cmds = [l for p in pending for l in commands(p)]
-        (folder / "000_all.pending.qs").write_text(
-            "\n".join(cmds) + "\n", encoding="utf-8"
-        )
-        out.append(
-            f"- Pending: `000_all.pending.qs`, waiting for: {', '.join(placeholders(cmds))}. "
-            'Run the award-items batch, then tell Claude "<award label> is Q…" to fill in the placeholders.'
-        )
-    for p in reports:
-        text = p.read_text(encoding="utf-8").strip()
-        out.append("\n" + re.sub(r"^(#+) ", r"#\1 ", text, flags=re.MULTILINE))
-    (folder / "000_all.qs-report.md").write_text(
-        "\n".join(out) + "\n", encoding="utf-8"
-    )
-
-
 def main():
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument(
@@ -460,10 +335,6 @@ def main():
     for f in batches:
         print(f)
         missing += [(f, u) for u in process_qs(f, cache, args.dry_run)]
-
-    if not args.dry_run:
-        for folder in sorted({f.parent for f in wikis + batches}):
-            rebuild_batches(folder)
 
     if missing:
         print("\nNo snapshot available for:", file=sys.stderr)

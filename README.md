@@ -13,7 +13,8 @@ statements as a QuickStatements batch in the same run. See [SKILL.md](SKILL.md) 
 | `amateur-theatre-article.skill` | Packaged skill, ready to upload |
 | `theaterlist.csv` | List of theatre groups on Wikidata (not part of the skill) |
 | `articles/` | Generated articles (`.wiki`), ready to paste into the wiki, with their feedback reports (`.report.md`), QuickStatements batches (`.qs`, `.award-items.qs`, `.pending.qs`) and reports (`.qs-report.md`), and the folder-wide `000_all.*` batch files |
-| `archive_refs.py` | Post-processing: adds Internet Archive snapshots to references and QuickStatements batches, and builds the batch URLs |
+| `archive_refs.py` | Post-processing: adds Internet Archive snapshots to references and QuickStatements batches |
+| `build_batches.py` | Post-processing: writes the batch URLs and the folder-wide `000_all.*` files |
 | `upload_articles.py` | Uploads the articles to the wiki |
 
 ## Building the `.skill` file
@@ -53,19 +54,25 @@ Restart Claude Code; the skill then appears in the skills list.
 ## Archiving references and building the batches
 
 After generating articles, run `archive_refs.py` to snapshot every cited web page
-in the [Internet Archive](https://web.archive.org/), add the snapshot links to
-the articles and QuickStatements batches, and build the batch URLs. It's a
-separate step, not part of the skill, and needs only Python 3 (standard library):
+in the [Internet Archive](https://web.archive.org/) and add the snapshot links to
+the articles and QuickStatements batches, then `build_batches.py` to build the
+batch URLs. Both are separate steps, not part of the skill, and need only
+Python 3 (standard library). Archiving needs archive.org S3 keys
+(https://archive.org/account/s3.php):
 
 ```sh
-python3 archive_refs.py --dry-run   # list the URLs it would archive
+export IA_ACCESS_KEY=… IA_SECRET_KEY=…
+python3 archive_refs.py --dry-run   # list the URLs it would archive (no keys needed)
 python3 archive_refs.py             # archive and update articles/ in place
 python3 archive_refs.py articles/Foo.wiki other-folder/   # specific files or folders
+python3 build_batches.py            # build the batch files of articles/
+python3 build_batches.py other-folder/
 ```
 
 For each `<ref>`, the script takes the first external link. Wikimedia links
 (Wikipedia, Wikidata, …) are skipped, because those are cited with `oldid`
-permalinks already. It asks Save Page Now for a fresh capture and appends the result:
+permalinks already. It asks Save Page Now for a capture (reusing one from the last
+six months) and appends the result:
 
 ```mediawiki
 <ref name="site">[https://example.de/ Über uns], Example e.V., retrieved 14 October 2026. [https://web.archive.org/web/20261014120000/https://example.de/ Archived] on 14 October 2026.</ref>
@@ -74,21 +81,21 @@ permalinks already. It asks Save Page Now for a fresh capture and appends the re
 If a capture fails, it falls back to the most recent existing snapshot. URLs with
 no snapshot at all are listed at the end, and the script exits with status 1.
 Refs that already contain a `web.archive.org` link are skipped, so it's safe to
-re-run. Anonymous captures are rate-limited, so expect roughly 10–60 seconds per URL.
+re-run. Requests are paced, so expect roughly 20–60 seconds per URL.
 
 The skill writes the QuickStatements batches with reference URL (S854) and
-retrieved date (S813) only. The script then:
+retrieved date (S813) only. `archive_refs.py` adds archive URL (S1065) and
+archive date (S2960) to every reference block in `<base>.qs`,
+`<base>.award-items.qs` and `<base>.pending.qs` that has an S854 and no S1065,
+reusing the snapshot it took for the article. `build_batches.py` then:
 
-1. adds archive URL (S1065) and archive date (S2960) to every reference block in
-   `<base>.qs`, `<base>.award-items.qs` and `<base>.pending.qs` that has an S854
-   and no S1065, reusing the snapshot it took for the article;
-2. writes the `## Batches` section of each `<base>.qs-report.md`, with command
+1. writes the `## Batches` section of each `<base>.qs-report.md`, with command
    counts and [QuickStatements 3.0](https://qs-dev.toolforge.org/) links;
-3. rebuilds the folder-wide `000_all.qs`, `000_all.qs.url`,
+2. rebuilds the folder-wide `000_all.qs`, `000_all.qs.url`,
    `000_all.award-items.qs(.url)`, `000_all.pending.qs` and
    `000_all.qs-report.md` from every group in the folder.
 
-Re-run it after changing a `.qs` file by hand (or after Claude resolved an award
+Re-run `build_batches.py` after changing a `.qs` file by hand (or after Claude resolved an award
 placeholder) to refresh the links and the `000_` files.
 
 ## Uploading articles to the wiki

@@ -2,8 +2,8 @@
 
 Target: QuickStatements 3.0 (`qs-dev.toolforge.org`), V1 commands. You write the
 commands and the report. `archive_refs.py` (run later by the user) adds archive
-pairs, writes batch URLs and the `## Batches` section, and builds the `000_all.*`
-files. Don't do any of that yourself.
+pairs; `build_batches.py` writes batch URLs and the `## Batches` section, and
+builds the `000_all.*` files. Don't do any of that yourself.
 
 ## Inputs
 

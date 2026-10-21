@@ -100,7 +100,7 @@ no new research.
 5. In each affected `<base>.qs-report.md`: add the new `P166` rows to "Added
    statements", move the award from "New items proposed" to "Matched to existing
    items" as "<label> → Q… (created <date>)", and rewrite the pending line with the QID.
-6. Tell the user to re-run `archive_refs.py` on the folder (or run it, if you have a shell).
+6. Tell the user to run `build_batches.py` on the folder (or run it, if you have a shell).
 
 Manual alternative for the user:
-`sed -i 's/Q<NEW: <label>>/Q…/g' *.pending.qs`, move the lines into each `.qs`, re-run `archive_refs.py`.
+`sed -i 's/Q<NEW: <label>>/Q…/g' *.pending.qs`, move the lines into each `.qs`, run `build_batches.py`.
