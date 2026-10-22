@@ -50,11 +50,18 @@ only source is Wikidata is skipped.
   re-foundings, joining or leaving a parent club, or older local traditions; list
   them under "Skipped".
 - **P159 / P6375**: the address only if the source calls it the registered seat, not a venue.
+  If the sources name a more precise place than the item's `P159` value (a district
+  or Ortsteil instead of the whole city or municipality, e.g. `Q758481` Aubing
+  instead of `Q1726` Munich), replace it: `SWITCH_VALUE` old → new, then a line
+  adding the reference (and `P6375`, if known). The new value must lie in the old
+  one; list the change under "Corrections".
 - **P1454 legal form**: when a source (imprint, register, official name) shows the
-  group's own form. Not for a section of a larger club. Other forms (gGmbH, GbR,
+  group's own form. Not for a section of a larger club. e. V. and GbR: "Known QIDs". Other forms (gGmbH,
   foreign associations): `search_items` + `get_statements` first.
-- **P463 / P749**: only an existing item, found with `search_items` and confirmed
-  with `get_statements`; never create one. `P463` for each umbrella or regional
+- **P463 / P749**: only an existing item: take it from "Known QIDs" below, otherwise
+  `search_items` + `get_statements`; never create one. A member of a regional
+  association is usually also in the BDAT through it: add only memberships a
+  source names. `P463` for each umbrella or regional
   association the group is a member of; `P749` when the group is a section of a
   larger club. No item → it stays in the article's Organisation section; mention
   it in the report.
@@ -82,9 +89,56 @@ only source is Wikidata is skipped.
   - `P2397` YouTube channel ID: only a `/channel/UC…` id.
   - `P11245` YouTube handle: from `youtube.com/@<handle>`, without `@`, query or trailing path, case kept.
   - Add each one found; don't derive one from another.
-- **Item values**: reuse the QID shown in `get_statements`, otherwise one
-  `search_items`. Never guess.
+- **Item values**: use "Known QIDs" below, or reuse the QID shown in
+  `get_statements`, otherwise one `search_items`. Never guess.
 - **Time precision**: `/9` year, `/10` month, `/11` day. Year unless the source gives an exact date.
+
+## Known QIDs
+
+Use these directly, without a lookup.
+
+| QID | Item | Used for |
+|---|---|---|
+| `Q9299236` | registered association (e. V.) | `P1454` |
+| `Q33134157` | Gesellschaft bürgerlichen Rechts (GbR) | `P1454` |
+| `Q132555` | de jure | `P1013` on `P571` |
+| `Q712144` | de facto | `P1013` on `P571` |
+| `Q5727902` | circa | `P1480` on vague counts |
+| `Q41755623` | incorrect value | `P2241` on deprecated statements |
+| `Q183` | Germany | `P17` |
+| `Q48183` | German Wikipedia | `S143` |
+| `Q328` | English Wikipedia | `S143` |
+| `Q618779` | award | `P31` of award items |
+| `Q15383322` | cultural prize | `P31` of award items |
+
+Amateur-theatre associations (`P463` member of, `P1027` conferred by):
+
+| QID | Association |
+|---|---|
+| `Q1004994` | Bund Deutscher Amateurtheater (BDAT) |
+| `Q19769225` | Landesverband Amateurtheater Baden-Württemberg |
+| `Q2513550` | Verband Bayerischer Amateurtheater |
+| `Q122811369` | Verband Berliner Amateurbühnen |
+| `Q122829962` | Brandenburgischer Amateurtheaterverband |
+| `Q122829963` | Landesverband Bremer Amateurtheater |
+| `Q122829964` | Verband Hamburger Amateurtheater |
+| `Q122829965` | Verband Hessischer Amateurtheater |
+| `Q122829966` | Landesverband Spiel & Theater Mecklenburg-Vorpommern |
+| `Q90135929` | Amateurtheaterverband Niedersachsen |
+| `Q122829968` | Amateurtheaterverband Nordrhein-Westfalen |
+| `Q122829969` | Landesverband Amateurtheater Rheinland-Pfalz |
+| `Q122829970` | Verband Saarländischer Amateurtheater |
+| `Q122828970` | Landesverband Amateurtheater Sachsen |
+| `Q122829971` | Landeszentrum Freies Theater Sachsen-Anhalt |
+| `Q122829972` | Landesverband der Amateurtheater Schleswig-Holstein |
+| `Q122829973` | Thüringer Theaterverband |
+
+Awards (`P166`):
+
+| QID | Award | Conferred by |
+|---|---|---|
+| `Q1204590` | Deutscher Amateurtheaterpreis | `Q1004994` BDAT |
+| `Q141739904` | Bayerischer Amateurtheaterpreis | `Q2513550` VBAT |
 
 ## References
 
@@ -93,7 +147,7 @@ Take the article's ref for the fact and convert it:
 | Source | Reference fields |
 |---|---|
 | Web page (also non-Wikimedia wikis) | `S854 "<cited URL exactly as in the ref>"` `S813 +YYYY-MM-DDT00:00:00Z/11` |
-| Wikipedia / other Wikimedia project | only `S143 <project QID>` (German Wikipedia = `Q48183`; resolve others). No URL, no date |
+| Wikipedia / other Wikimedia project | only `S143 <project QID>` (German Wikipedia = `Q48183`, English = `Q328`; resolve others). No URL, no date |
 
 - Two refs on the sentence → two reference blocks; the second one starts with `!S…`.
 - No `S1065`/`S2960` archive pairs (the script adds them).
