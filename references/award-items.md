@@ -55,7 +55,7 @@ Add only statements the sources support. Resolve every item value with
 | Named after | `P138` | only if the namesake has an item |
 | Prize money | `P2121` | `5000U<euro QID>` + `P585` |
 | Interval | `P2257` | `1U<year QID>` annual, `2U<year QID>` biennial |
-| Website | `P856` | the award's own page |
+| Website | `P856` | the award's own page, with `P407` language of work (usually `Q188` German) |
 
 Reference every statement except labels, descriptions, aliases and the website
 with `S854` + `S813`. Never create items for awarding bodies or people.

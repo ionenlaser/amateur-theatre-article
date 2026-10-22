@@ -32,7 +32,7 @@ out of the article on purpose: take them from the ledger with its source URL.
 | Dissolved | `P576` time or `somevalue` | yes |
 | Award received | `P166` item + `P585`, optional `P1027`, `P1686`, `P14360` | yes |
 | Alias / former name | `Ade` / `Aen` | no |
-| Official website | `P856` string | no |
+| Official website | `P856` string + `P407` language of work | no |
 | Facebook / Instagram / X | `P2013` / `P2003` / `P2002` string | no |
 | YouTube channel ID / handle | `P2397` / `P11245` string | no |
 | Mastodon | `P4033` `"user@instance"` | no |
@@ -82,6 +82,10 @@ only source is Wikidata is skipped.
   `award-items.md`. Nominations (`P1411`) only on request.
 - **P856 websites**: every official site not on the item (new domain, festival or
   youth site). Skip URLs that differ only by `http`/`https`, `www.` or a trailing slash.
+  Qualify each with `P407` language of work: the language(s) the site is written in,
+  usually `Q188` German; one `P407` per language for a multilingual site (e.g. a
+  Low German site → `Q25433`; resolve other languages via `search_items`). An existing
+  `P856` without `P407` → repeat it with the qualifier.
 - **Social media**: only from real profile links (site footer/header, an opened
   profile), never guessed.
   - `P2013` Facebook: the username from `facebook.com/<username>`; for `facebook.com/<Name>-<digits>/`, the numeric id.
@@ -106,6 +110,7 @@ Use these directly, without a lookup.
 | `Q5727902` | circa | `P1480` on vague counts |
 | `Q41755623` | incorrect value | `P2241` on deprecated statements |
 | `Q183` | Germany | `P17` |
+| `Q188` | German | `P407` on `P856` |
 | `Q48183` | German Wikipedia | `S143` |
 | `Q328` | English Wikipedia | `S143` |
 | `Q618779` | award | `P31` of award items |
@@ -203,6 +208,7 @@ Q17325980	P2124	80	P585	+2026-00-00T00:00:00Z/9	P1480	Q5727902	S854	"https://ruh
 Q123456789	P576	somevalue	S854	"<source URL>"	S813	+2026-10-14T00:00:00Z/11
 Q123456789	P166	Q<award>	P585	+2018-00-00T00:00:00Z/9	P1027	Q<awarding body>	P1686	Q<play>	S854	"<winners list URL>"	S813	+2026-10-14T00:00:00Z/11
 Q18289439	Ade	"SeTA"
+Q122834860	P856	"https://www.example-theater.de/"	P407	Q188
 Q122834860	P2013	"ExampleTheatreBremen"
 SWITCH_VALUE	Q123456789	P159	Q<wrong town>	Q<right town>
 Q123456789	P159	Q<right town>	S854	"<imprint URL>"	S813	+2026-10-14T00:00:00Z/11
