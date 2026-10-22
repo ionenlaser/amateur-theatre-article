@@ -120,7 +120,3 @@ Pages that already exist are skipped unless you pass `--overwrite`. Run
 - **Wikidata MCP connector**: the skill reads the Wikidata item through it.
   Enable it in Claude.ai under **Settings → Connectors**.
 - **Web search / web fetch**: needed for researching the group online.
-
-## License
-
-See [LICENSE](LICENSE).

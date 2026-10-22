@@ -13,7 +13,9 @@ builds the `000_all.*` files. Don't do any of that yourself.
 
 Facts count when the article states them, directly implies them (a name "Vineta
 1900" plus a cited 125th anniversary in 2025 → founded 1900; use the implying
-sentence's ref), or when the infobox shows them (websites, social media).
+sentence's ref), or when the infobox shows them (websites, social media). Legal
+form, registered address, umbrella associations and parent organisation are kept
+out of the article on purpose: take them from the ledger with its source URL.
 
 ## Default property set
 
@@ -24,6 +26,8 @@ sentence's ref), or when the infobox shows them (websites, social media).
 | Registered-seat address | `P6375` monolingual, as qualifier on `P159` | yes |
 | Official name | `P1448` `de:"… e. V."` | yes |
 | Legal form | `P1454` item, usually `Q9299236` registered association | yes |
+| Umbrella association | `P463` item | yes |
+| Parent organisation | `P749` item (the club the group is a section of) | yes |
 | Member count | `P2124` quantity + `P585`; `P1480` `Q5727902` if vague | yes |
 | Dissolved | `P576` time or `somevalue` | yes |
 | Award received | `P166` item + `P585`, optional `P1027`, `P1686`, `P14360` | yes |
@@ -49,6 +53,11 @@ only source is Wikidata is skipped.
 - **P1454 legal form**: when a source (imprint, register, official name) shows the
   group's own form. Not for a section of a larger club. Other forms (gGmbH, GbR,
   foreign associations): `search_items` + `get_statements` first.
+- **P463 / P749**: only an existing item, found with `search_items` and confirmed
+  with `get_statements`; never create one. `P463` for each umbrella or regional
+  association the group is a member of; `P749` when the group is a section of a
+  larger club. No item → it stays in the article's Organisation section; mention
+  it in the report.
 - **P2124 members**: one statement per dated count, all years, each with `P585`
   (`/9` year or exact date) on the same line. Split exact counts → their sum.
   Undated count → `P585` = year of the retrieval date; mention it in the report.
@@ -182,7 +191,7 @@ Generated <date> from `<base>.wiki`.
 - …
 
 ## Proposals outside the default set
-- P463 member of Amateurtheaterverband Niedersachsen e. V. (Q<id>): add?
+- P973 described at URL https://example-zeitung.de/70-jahre-speeldeel: add?
 
 ## Open questions
 - …

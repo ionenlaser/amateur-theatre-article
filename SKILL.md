@@ -65,7 +65,8 @@ PROBLEM lead     | Festschrift 2001, print only
    `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=<QID>&props=sitelinks|info&format=json`
    (`lastrevid` is the revision to cite for a stub).
 4. Note: name, description, aliases, P31, P856 (main research seed), P159,
-   P571, P463 (umbrella association, usually a local link), social media
+   P571, P1454 (legal form), P463 (umbrella association), P749 (parent
+   organisation), social media
    (P2013 Facebook, P2003 Instagram, P2002 X, P2397/P11245 YouTube, P4033
    Mastodon), and Wikipedia sitelink titles.
 5. ⛔ P31 is clearly not a theatre group (a person, a place) → stop and ask
@@ -88,7 +89,7 @@ in the ledger with its URL, title and site.
 | Kind of theatre | language/dialect (Low German, Bavarian …), genre (comedy, open-air, improv, puppetry, youth, senior) |
 | Repertoire | **every** production: year, title, author. Not a selection |
 | Venue | named playing space |
-| Organisation | legal form (e. V., or a section of a larger club), registered address, umbrella associations, festivals |
+| Organisation | legal form (e. V., or a section of a larger club), registered address, umbrella associations, parent organisation: for Wikidata (Step 5), shown by the infobox. Festivals, cooperations, other activities: for the article. Not website operators, imprint names or board members |
 | Members | **every dated** member count with its year; split counts (adults + youth) |
 | Status | explicit dissolution evidence (register notice, press, own announcement, association list) |
 | Awards | exact name, year, awarding body, production, category/rank. Nominations are not awards |
@@ -141,7 +142,10 @@ Read `references/article-format.md`, then write `<base>.wiki` from the ledger:
    third person, no promotional wording.
 3. Sections: lead, History, Repertoire (table if there are about five or more
    dated productions), Venue, Organisation, Awards, References. Leave out a
-   section you can't source.
+   section you can't source. Legal form, address, umbrella associations and
+   parent organisation go to Wikidata (Step 5) for the infobox, not into the
+   prose; Organisation only holds what the infobox can't show (see the format
+   reference).
 4. Links: generic topics → `[[wikipedia:Title|text]]`, amateur-theatre topics
    → local `[[Title]]`. Check all `wikipedia:` targets in **one** batched API
    call; drop or replace any that are missing.
@@ -155,11 +159,12 @@ Check the article; fix any failing point before you go on:
 - [ ] Template order and the **input** QID in the infobox; `{{Stub}}` if and only if Wikidata is the only source.
 - [ ] Lead bolds the native name and says what and where the group is.
 - [ ] Every non-obvious claim is referenced; no ref repeated sentence after sentence.
-- [ ] Every body ref is `<ref name="x" />`, and each name is defined exactly once inside `<references>…</references>`. No `{{cite …}}` templates.
+- [ ] Every body ref is `<ref name="x" />`, and each name is defined exactly once inside `<references>…</references>`. No purely numeric names (`"2016"`, `"50"`); use e.g. `"season2016"`. No `{{cite …}}` templates.
 - [ ] Wikipedia refs use `oldid` permalinks; non-Wikimedia wikis use plain URLs.
 - [ ] Every `wikipedia:` target was confirmed by the API; each term is linked once; no `{{Wikipedia article}}`, no External links section, no categories.
 - [ ] Every award from the ledger is in Awards with name, year, body and ref.
-- [ ] The repertoire table holds every production from the ledger, and its caption says complete or incomplete.
+- [ ] The repertoire table holds every production from the ledger, and its caption says complete or incomplete. No sentence about missing years or productions not found.
+- [ ] Organisation has no legal form, address, umbrella association or parent organisation that has a Wikidata item, and no website operators, imprint names or board members. Dropped if nothing else remains.
 
 Then read `references/report-format.md` and write `<base>.report.md` from the
 `PROBLEM` lines.
@@ -187,7 +192,7 @@ In the final message:
    are only ready after that.
 3. If award items were proposed: run the award-items batch, then tell Claude
    "<award label> is Q…".
-4. List facts outside the default property set (e.g. P973, P463) and ask
+4. List facts outside the default property set (e.g. P973) and ask
    whether to add them to the default set.
 
 Then stop.

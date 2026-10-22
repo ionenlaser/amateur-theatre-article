@@ -11,7 +11,7 @@
 == History ==
 == Repertoire ==
 == Venue ==          <!-- only with a named, documented playing space -->
-== Organisation ==   <!-- legal form, associations, festivals -->
+== Organisation ==   <!-- only what the infobox can't show: see Section rules -->
 == Awards ==         <!-- only with documented awards -->
 
 == References ==
@@ -25,9 +25,32 @@
 - Never add: a hand-written infobox or a list of infobox fields, `{{Wikipedia article}}`
   (the infobox links Wikipedia), an `External links` section (the infobox shows
   websites and social media), categories.
-- Mention infobox facts only where the prose needs them.
+- Mention infobox facts only where the prose needs them. Legal form, registered
+  address, umbrella associations and parent organisation are infobox facts: they
+  go to Wikidata in Step 5 (`P1454`, `P159`/`P6375`, `P463`, `P749`), not into the prose.
 
 ## Section rules
+
+**Organisation**: only for what the infobox can't show:
+- the group is a section or project of a larger organisation that has no Wikidata
+  item (a sports club, a parish, a school);
+- festivals, theatre days, cooperations, workshops, youth work or other activities.
+
+Never: legal form, registered address, umbrella associations or parent organisations
+with a Wikidata item (all in the infobox), who runs or hosts the website, who is
+named in the imprint, founders or board members as "responsible persons". No
+Organisation section if nothing else remains. Not:
+
+```mediawiki
+The group's website is run by Uwe Tüchler in Stadtbergen.
+The group is run by its founder Rainer Schissel, who is named in the imprint of its website as the responsible person. It is a member of the Verband Bayerischer Amateurtheater e. V.
+```
+
+But:
+
+```mediawiki
+The group is the theatre section of the [[wikipedia:Sports club|sports club]] TSV Beispieldorf 1898.<ref name="tsv" /> It has taken part in the [[Niedersächsische Amateurtheatertage]] several times and runs a youth group.<ref name="press1" />
+```
 
 **Awards**: one or two awards → prose; three or more → bulleted list, oldest first:
 
@@ -60,8 +83,10 @@ year, changes over time). With about five or more dated productions, add a table
 
 - **Every** production found, oldest first; revivals get their own row ("revival of 1987 production").
 - Caption: `Productions` if complete, `Productions (incomplete)` if there are known
-  gaps (name the missing years in the prose), `Selected productions` only if the
-  sources themselves give only a selection.
+  gaps, `Selected productions` only if the sources themselves give only a selection.
+- The caption is the only place that says so: no sentence about gaps or what wasn't
+  found ("Productions before 2022 and in 2023 were not found"). The gaps go into the
+  feedback report.
 - Columns: Year, Title, Author ("after X" for adaptations), Notes (director, venue,
   award). Drop a column the sources leave empty.
 - Titles in italics, in the language performed; add the English title only for well-known plays.
@@ -75,8 +100,7 @@ Rule: would a general encyclopedia have an article on this?
 
 - **Yes → English Wikipedia** via `wikipedia:` (art forms, languages, places, general
   institutions, well-known plays and authors):
-  `[[wikipedia:Low German|Low German]]`, `[[wikipedia:Hanover|Hanover]]`,
-  `[[wikipedia:Voluntary association#Germany|registered association]]`.
+  `[[wikipedia:Low German|Low German]]`, `[[wikipedia:Hanover|Hanover]]`.
 - **No, it belongs to the amateur-theatre scene → local link** (troupes, scene
   festivals, associations): `[[Niedersächsische Amateurtheatertage]]`. Use the
   wiki's exact title, legal form included: `[[Amateurtheaterverband Niedersachsen e. V.]]`,
@@ -108,6 +132,9 @@ Format, always (no `{{cite web}}` / `{{cite news}}`; they don't exist on the wik
 - **One pattern only**: every body ref is self-closing `<ref name="x" />`, and every
   name is defined exactly once inside `<references>…</references>`. (A self-closing
   name with no definition causes the "has no content" cite error.)
+- **Ref names must contain a letter**: a purely numeric name such as `"2016"` or
+  `"50"` causes the "name cannot be a simple integer" cite error. Use a short
+  descriptive name: `"chronik2016"`, `"season2025"`, `"jubilee50"`, `"press1"`.
 - Retrieved date = today.
 - **Placement**: when consecutive sentences come from one source, cite it once after
   the last of them. Add a ref where the source changes, and directly after a
@@ -169,13 +196,13 @@ When the item is the only source:
 '''Plattdütsche Speeldeel Beispieldorf''' is a [[wikipedia:Low German|Low German]] amateur theatre group based in [[wikipedia:Beispieldorf|Beispieldorf]], Lower Saxony, Germany.<ref name="site" /> Founded in 1951, it stages an annual winter production in the local parish hall in the [[wikipedia:Northern Low Saxon|Northern Low Saxon]] dialect.<ref name="site" /><ref name="press1" />
 
 == History ==
-The group was founded in 1951 by members of the village [[wikipedia:Heimat|Heimat]] society and has performed continuously since, apart from a pause during the 1970s.<ref name="press1" /> It is a registered association ([[wikipedia:Voluntary association#Germany|e. V.]]).<ref name="site" />
+The group was founded in 1951 by members of the village [[wikipedia:Heimat|Heimat]] society and has performed continuously since, apart from a pause during the 1970s.<ref name="press1" />
 
 == Repertoire ==
 The stage specialises in Low German comedies, with one full-length production each winter; recent seasons have also included a short youth-group piece.<ref name="site" />
 
 == Organisation ==
-The group is a member of the [[Amateurtheaterverband Niedersachsen e. V.]] and has taken part in the [[Niedersächsische Amateurtheatertage]].<ref name="press1" />
+The group has taken part in the [[Niedersächsische Amateurtheatertage]].<ref name="press1" />
 
 == References ==
 <references>
