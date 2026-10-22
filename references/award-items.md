@@ -77,7 +77,8 @@ LAST	P571	+2005-00-00T00:00:00Z/9	S854	"<awarding body page>"	S813	+2026-10-14T0
 
 The group's `P166` lines for the new award, with the placeholder
 `Q<NEW: <Lde label>>`. The label must match the `CREATE` block's `Lde` character
-for character. Pending lines never go into `<base>.qs`.
+for character. Pending lines never go into `<base>.qs`. No `P1027` qualifier: the
+awarding body is on the `CREATE` block.
 
 ```
 Q123456789	P166	Q<NEW: Beispieler Amateurtheaterpreis>	P585	+2018-00-00T00:00:00Z/9	S854	"<winners list URL>"	S813	+2026-10-14T00:00:00Z/11

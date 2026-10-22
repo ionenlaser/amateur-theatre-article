@@ -30,7 +30,7 @@ out of the article on purpose: take them from the ledger with its source URL.
 | Parent organisation | `P749` item (the club the group is a section of) | yes |
 | Member count | `P2124` quantity + `P585`; `P1480` `Q5727902` if vague | yes |
 | Dissolved | `P576` time or `somevalue` | yes |
-| Award received | `P166` item + `P585`, optional `P1027`, `P1686`, `P14360` | yes |
+| Award received | `P166` item + `P585`, optional `P1686`, `P14360` | yes |
 | Alias / former name | `Ade` / `Aen` | no |
 | Official website | `P856` string + `P407` language of work | no |
 | Facebook / Instagram / X | `P2013` / `P2003` / `P2002` string | no |
@@ -77,8 +77,11 @@ only source is Wikidata is skipped.
 - **P166 awards**: one statement per award and year, always with `P585`. Value =
   the specific prize item, found with `search_items` (native and English name) and
   confirmed with `get_statements` (P31 award/prize, matching conferring body).
-  `P1027` conferred by and `P1686` for work where those items exist; `P14360` only
-  if the category has an item. **No item → never use a broader item**; read
+  `P1686` for work where that item exists; `P14360` only if the category has an
+  item. No `P1027` qualifier: the awarding body belongs on the award item. If the
+  award item lacks `P1027`, add it there (`Q<award>	P1027	Q<body>`, referenced);
+  qualify `P166` with `P1027` only when several bodies confer the same award and
+  the item can't tell which one did. **No item → never use a broader item**; read
   `award-items.md`. Nominations (`P1411`) only on request.
 - **P856 websites**: every official site not on the item (new domain, festival or
   youth site). Skip URLs that differ only by `http`/`https`, `www.` or a trailing slash.
@@ -116,7 +119,7 @@ Use these directly, without a lookup.
 | `Q618779` | award | `P31` of award items |
 | `Q15383322` | cultural prize | `P31` of award items |
 
-Amateur-theatre associations (`P463` member of, `P1027` conferred by):
+Amateur-theatre associations (`P463` member of; `P1027` conferred by on award items):
 
 | QID | Association |
 |---|---|
@@ -206,7 +209,7 @@ Q122798558	P159	Q1726	P6375	de:"Sudetendeutsche Straße 40, 80937 München"	S854
 Q17325980	P2124	117	P585	+2019-00-00T00:00:00Z/9	S143	Q48183
 Q17325980	P2124	80	P585	+2026-00-00T00:00:00Z/9	P1480	Q5727902	S854	"https://ruhrbuehne-witten.de/verein/"	S813	+2026-10-14T00:00:00Z/11
 Q123456789	P576	somevalue	S854	"<source URL>"	S813	+2026-10-14T00:00:00Z/11
-Q123456789	P166	Q<award>	P585	+2018-00-00T00:00:00Z/9	P1027	Q<awarding body>	P1686	Q<play>	S854	"<winners list URL>"	S813	+2026-10-14T00:00:00Z/11
+Q123456789	P166	Q<award>	P585	+2018-00-00T00:00:00Z/9	P1686	Q<play>	S854	"<winners list URL>"	S813	+2026-10-14T00:00:00Z/11
 Q18289439	Ade	"SeTA"
 Q122834860	P856	"https://www.example-theater.de/"	P407	Q188
 Q122834860	P2013	"ExampleTheatreBremen"
