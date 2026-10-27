@@ -61,9 +61,8 @@ PROBLEM lead     | Festschrift 2001, print only
    `web_search` / `web_fetch`.
 2. Call `get_statements(entity_id=<QID>, include_external_ids=true)`. Keep the
    result: Step 5 reuses it.
-3. Fetch sitelinks and the current revision in one call:
-   `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=<QID>&props=sitelinks|info&format=json`
-   (`lastrevid` is the revision to cite for a stub).
+3. Fetch the sitelinks:
+   `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=<QID>&props=sitelinks&format=json`
 4. Note: name, description, aliases, P31, P856 (main research seed), P159,
    P571, P1454 (legal form), P463 (umbrella association), P749 (parent
    organisation), social media
@@ -158,9 +157,9 @@ Check the article; fix any failing point before you go on:
 
 - [ ] Template order and the **input** QID in the infobox; `{{Stub}}` if and only if Wikidata is the only source.
 - [ ] Lead bolds the native name and says what and where the group is.
-- [ ] Every non-obvious claim is referenced; no ref repeated sentence after sentence.
+- [ ] Every non-obvious claim is referenced (claims taken only from Wikidata stay unreferenced); no ref repeated sentence after sentence.
 - [ ] Every body ref is `<ref name="x" />`, and each name is defined exactly once inside `<references>…</references>`. No purely numeric names (`"2016"`, `"50"`); use e.g. `"season2016"`. No `{{cite …}}` templates.
-- [ ] Wikipedia refs use `oldid` permalinks; non-Wikimedia wikis use plain URLs.
+- [ ] No ref cites Wikidata (no `wikidata.org` URL in any ref). Wikipedia refs use `oldid` permalinks; non-Wikimedia wikis use plain URLs.
 - [ ] Every `wikipedia:` target was confirmed by the API; each term is linked once; no `{{Wikipedia article}}`, no External links section, no categories.
 - [ ] Every award from the ledger is in Awards with name, year, body and ref.
 - [ ] The repertoire table holds every production from the ledger, and its caption says complete or incomplete. No sentence about missing years or productions not found.

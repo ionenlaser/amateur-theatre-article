@@ -148,7 +148,11 @@ Format, always (no `{{cite web}}` / `{{cite news}}`; they don't exist on the wik
 - Evaluations only attributed and from independent sources ("the regional press
   described the 2019 production as …").
 
-**Wikimedia sources** (Wikipedia, Wikidata, Commons, …): cite the revision you read.
+**Wikidata is never a ref.** Statements from the item may be used in the prose
+(especially in a stub), but are never cited in a `<ref>` or the references block.
+A claim taken only from Wikidata stays unreferenced.
+
+**Wikimedia sources** (Wikipedia, Commons, …): cite the revision you read.
 Get revids for all titles of one wiki in one call:
 
 ```text
@@ -173,16 +177,12 @@ When the item is the only source:
 {{Stub}}
 {{DynamicInfobox|qid=Q123456789}}
 
-'''Theatergruppe Beispieldorf''' is an amateur theatre group in [[wikipedia:Beispieldorf|Beispieldorf]], Bavaria, Germany, founded in 1978.<ref name="wikidata" />
-
-== References ==
-<references>
-<ref name="wikidata">[https://www.wikidata.org/w/index.php?title=Q123456789&oldid=2345678901 Theatergruppe Beispieldorf (Q123456789)], Wikidata, retrieved 15 October 2026.</ref>
-</references>
+'''Theatergruppe Beispieldorf''' is an amateur theatre group in [[wikipedia:Beispieldorf|Beispieldorf]], Bavaria, Germany, founded in 1978.
 ```
 
 - One to three sentences from statements with plain values (name, type, town, founding year).
-- `oldid` = `lastrevid` from Step 1.
+- No refs and no References section: Wikidata is never cited in the article; the
+  infobox already shows the item.
 - No claims from the description or from missing statements ("no longer active").
   No filler about the town or the genre.
 - `{{Stub}}` adds `Category:Stub` itself. Never use it once any other source exists.
