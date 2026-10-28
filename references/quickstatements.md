@@ -47,8 +47,7 @@ only source is Wikidata is skipped.
   `Q712144` de facto (first meeting, rehearsal or performance). At most one of each.
   The de jure date gets `R+`. If the item has one of them without the qualifier,
   repeat it with `P1013` (and `R+` if de jure), then add the other. Skip renamings,
-  re-foundings, joining or leaving a parent club, or older local traditions; list
-  them under "Skipped".
+  re-foundings, joining or leaving a parent club, or older local traditions.
 - **P159 / P6375**: the address only if the source calls it the registered seat, not a venue.
   If the sources name a more precise place than the item's `P159` value (a district
   or Ortsteil instead of the whole city or municipality, e.g. `Q758481` Aubing
@@ -68,6 +67,8 @@ only source is Wikidata is skipped.
 - **P2124 members**: one statement per dated count, all years, each with `P585`
   (`/9` year or exact date) on the same line. Split exact counts → their sum.
   Undated count → `P585` = year of the retrieval date; mention it in the report.
+  The number of founders or founding members is a count with `P585` = the
+  founding date.
   Vague counts ("about 80", "rund 50", "über 100") → the number plus `P1480`
   `Q5727902`. Plain integers (`117`). No ranks.
 - **P576 dissolved**: only with an explicit source (register notice, press, own
@@ -219,22 +220,14 @@ Q123456789	P159	Q<right town>	S854	"<imprint URL>"	S813	+2026-10-14T00:00:00Z/11
 
 ## Report (`<base>.qs-report.md`)
 
-For the person who runs the batches; every point actionable. **Leave out empty
-sections and sub-headings** (no "None."). No `## Batches` section.
+For the person who runs the batches. Only what needs a human: corrections to
+existing data, conflicts, doubtful or unusual additions, and questions. Plain
+additions are in the `.qs` file; don't list them, and don't list what was
+skipped. **Leave out empty sections** (no "None."). No batch URLs, no
+`## Batches` section. A report with nothing to flag is just the heading line.
 
 ```markdown
 # QuickStatements report: <Group name> (<QID>)
-
-Generated <date> from `<base>.wiki`.
-
-## Added statements
-| Property | Value | Source |
-|---|---|---|
-| P571 inception | 1946 | Chronik |
-
-## Skipped
-- P571 inception: already on the item (1946).
-- P571 1969 (renaming): a renaming is not a founding date.
 
 ## Corrections
 - P159 headquarters: Q<wrong> → Q<right> (SWITCH_VALUE), per the imprint; old references kept, new one added.
@@ -242,9 +235,10 @@ Generated <date> from `<base>.wiki`.
 ## Conflicts between the item and the article
 - Item says inception 1948 with a press reference; the Chronik says 1946. Not changed; check by hand.
 
+## Doubtful additions
+- P2124 80 (2026): undated count on the Verein page; dated to the retrieval year.
+
 ## Awards
-### Matched to existing items
-- Bayerischer Amateurtheaterpreis 2018 → Q<id>
 ### New items proposed
 - *Beispieler Amateurtheaterpreis* (Landkreis Beispiel, since 2005): why it qualifies, sources, pending line:
   `Q123456789	P166	Q<NEW: Beispieler Amateurtheaterpreis>	P585	+2018-00-00T00:00:00Z/9	…`

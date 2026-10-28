@@ -98,9 +98,8 @@ no new research.
    those lines to the group's `<base>.qs` (create it if missing), remove them from
    `.pending.qs`. Delete a `.pending.qs` once it's empty.
 4. Delete the award's `CREATE` block from its `.award-items.qs`; delete the file if it's empty.
-5. In each affected `<base>.qs-report.md`: add the new `P166` rows to "Added
-   statements", move the award from "New items proposed" to "Matched to existing
-   items" as "<label> → Q… (created <date>)", and rewrite the pending line with the QID.
+5. In each affected `<base>.qs-report.md`: delete the award from "New items
+   proposed" (and the `### New items proposed` heading if it's empty).
 6. Tell the user to run `build_batches.py` on the folder (or run it, if you have a shell).
 
 Manual alternative for the user:

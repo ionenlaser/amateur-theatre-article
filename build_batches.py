@@ -1,8 +1,8 @@
 """Build the QuickStatements batch files of article folders.
 
 Run this after archive_refs.py, or after changing a .qs file by hand. For every
-folder it rewrites the "## Batches" section of each <base>.qs-report.md (with its
-QuickStatements 3.0 URLs) and rebuilds the folder-wide 000_all.qs, 000_all.qs.url,
+folder it rewrites the "## Batches" section of each <base>.qs-report.md (file names
+and counts; the QuickStatements 3.0 URLs go only into .url files) and rebuilds the folder-wide 000_all.qs, 000_all.qs.url,
 000_all.award-items.qs(.url), 000_all.pending.qs and 000_all.qs-report.md.
 
 Usage:
@@ -67,16 +67,10 @@ def update_report(folder, base):
     awards = folder / (base + ".award-items.qs")
     pending = folder / (base + ".pending.qs")
     if main.exists() and (cmds := commands(main)):
-        out.append(
-            f"- Main batch: `{main.name}`, {len(cmds)} commands, "
-            f"[open in QuickStatements]({batch_url(cmds)})"
-        )
+        out.append(f"- Main batch: `{main.name}`, {len(cmds)} commands")
     if awards.exists() and (cmds := commands(awards)):
         n = sum(l == "CREATE" for l in cmds)
-        out.append(
-            f"- Award items: `{awards.name}`, {n} new items, "
-            f"[open in QuickStatements]({batch_url(cmds)})"
-        )
+        out.append(f"- Award items: `{awards.name}`, {n} new items")
     if pending.exists() and (cmds := commands(pending)):
         for label in placeholders(cmds):
             creator = creator_of(folder, label)
@@ -137,15 +131,15 @@ def rebuild_batches(folder):
     if main:
         n, url = write_batch(folder, "000_all.qs", main)
         out.append(
-            f"- Main batch: `000_all.qs`, {n} commands from {len(main)} groups, "
-            f"[open in QuickStatements]({url})"
+            f"- Main batch: `000_all.qs`, {n} commands from {len(main)} groups; "
+            "open `000_all.qs.url`"
         )
         print(f"  {folder / '000_all.qs'}: {n} commands, URL {len(url)} characters")
     if awards:
         n, url = write_batch(folder, "000_all.award-items.qs", awards)
         out.append(
-            f"- Award items: `000_all.award-items.qs`, {n} commands from {len(awards)} groups, "
-            f"[open in QuickStatements]({url})"
+            f"- Award items: `000_all.award-items.qs`, {n} commands from {len(awards)} groups; "
+            "open `000_all.award-items.qs.url`"
         )
     if pending:
         cmds = [l for p in pending for l in commands(p)]

@@ -52,6 +52,7 @@ PROBLEM conflict | founding 1951 (chronik) vs 1950 (press1)
 PROBLEM error    | https://…/archiv 404
 PROBLEM weak     | venue only on own site
 PROBLEM lead     | Festschrift 2001, print only
+PROBLEM unread   | press2 paywalled; cited for the 2015 premiere from the teaser
 ```
 
 ## Step 1 — Read the Wikidata item
@@ -79,6 +80,11 @@ qualifiers or references; `search_items` when given a name instead of a QID;
 
 ## Step 2 — Research
 
+Hand this whole step to one general-purpose subagent with `model: sonnet`.
+Give it the Step 1 notes (name, town, P856, sitelink titles) and this
+section; it returns only the ledger lines, so fetched pages stay out of the
+main conversation. No subagent tool available → do this step inline.
+
 Find every item in the checklist, or confirm it can't be found. Log each find
 in the ledger with its URL, title and site.
 
@@ -89,7 +95,7 @@ in the ledger with its URL, title and site.
 | Repertoire | **every** production: year, title, author. Not a selection |
 | Venue | named playing space |
 | Organisation | legal form (e. V., or a section of a larger club), registered address, umbrella associations, parent organisation: for Wikidata (Step 5), shown by the infobox. Festivals, cooperations, other activities: for the article. Not website operators, imprint names or board members |
-| Members | **every dated** member count with its year; split counts (adults + youth) |
+| Members | **every dated** member count with its year; split counts (adults + youth). The number of founders or founding members ("12 Gründungsmitglieder") is a member count dated to the founding |
 | Status | explicit dissolution evidence (register notice, press, own announcement, association list) |
 | Awards | exact name, year, awarding body, production, category/rank. Nominations are not awards |
 | Websites, social media | every official site; profile links from the site's footer or header |
@@ -106,12 +112,14 @@ Order, with each batch sent in parallel:
    regional press (reviews, anniversary reports), city or regional wikis,
    municipal culture pages, umbrella-association member pages, festival
    programmes, awarding bodies' winners lists, Festschrift PDFs.
-3. **Repertoire gaps**: list old snapshots with the CDX API instead of the
-   Wayback calendar:
+3. **Wayback Machine**: use it only when the website no longer works, or
+   when the live site has no archive of past productions. Then list
+   snapshots with the CDX API instead of the Wayback calendar:
    `https://web.archive.org/cdx/search/cdx?url=<domain>/*&output=json&fl=timestamp,original&filter=statuscode:200&collapse=urlkey&limit=200`,
-   then fetch the snapshots of history and production pages
-   (`https://web.archive.org/web/<timestamp>/<original>`). Fill remaining gaps
-   from Wikipedia, press, association and festival pages, and social media.
+   and fetch at most 2 snapshots of history or production pages
+   (`https://web.archive.org/web/<timestamp>/<original>`). Fill remaining
+   repertoire gaps from Wikipedia, press, association and festival pages, and
+   social media.
 
 Scale the depth to the group: a long-running stage with press coverage gets
 many more follow-ups than a village group with only a homepage. **Stop
@@ -125,6 +133,10 @@ Source rules:
   plain facts (dates, venue, repertoire), never for evaluative claims.
 - Add an independent source for a fact even when it is already cited to the
   group's own site.
+- Cite press coverage even when the article itself can't be read (paywall,
+  blocked, print only): cite it with the title, paper and date you know, for
+  the facts visible in the search result, the teaser or a citing page. Log it
+  as `PROBLEM unread` so the report flags it.
 - A dead website or a gap in productions is not evidence of dissolution.
 - Log contradictions, failed pages and own-site-only claims as `PROBLEM` lines.
 
